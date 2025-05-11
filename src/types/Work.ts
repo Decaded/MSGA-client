@@ -19,5 +19,4 @@ export type WorkStatus =
   | 'taken_down'
   | 'in_progress'
   | 'confirmed'
-  | 'taken_down'
   | 'original';
