@@ -24,7 +24,7 @@ export default function Header() {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          ScribbleHub Reporter
+          MSGA - Make Scribble Hub Great Again
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button color="inherit" component={RouterLink} to="/">
