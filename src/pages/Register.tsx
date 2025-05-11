@@ -14,6 +14,7 @@ import {
 
 export default function Register() {
   const [username, setUsername] = useState('');
+  const [shProfileURL, setScribbleHubAccountURL] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,11 +29,18 @@ export default function Register() {
       return;
     }
 
+    const scribbleHubURLPattern =
+      /^https:\/\/www\.scribblehub\.com\/profile\/\d+\/[a-zA-Z0-9-_]+\/?$/;
+    if (!scribbleHubURLPattern.test(shProfileURL)) {
+      setError('Please enter a valid Scribble Hub profile URL.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      await register({ username, password });
+      await register({ username, shProfileURL, password });
       navigate('/');
     } catch (err) {
       setError(
@@ -47,13 +55,12 @@ export default function Register() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={3} sx={{ p: 2 }}>
         <Typography variant="h4" gutterBottom>
           Register
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Register for an account. Your account must be approved by an admin
-          before you can log in.
+          Your account must be approved by an admin before you can log in. <br /> SH profile link is needed for user verification.
         </Typography>
 
         {error && (
@@ -65,8 +72,18 @@ export default function Register() {
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <TextField
             label="Username"
+            placeholder="Your username"
             value={username}
             onChange={e => setUsername(e.target.value)}
+            fullWidth
+            required
+            margin="normal"
+          />
+          <TextField
+            label="Scribble Hub Profile URL"
+            placeholder="https://www.scribblehub.com/profile/123456/username/"
+            value={shProfileURL}
+            onChange={e => setScribbleHubAccountURL(e.target.value)}
             fullWidth
             required
             margin="normal"

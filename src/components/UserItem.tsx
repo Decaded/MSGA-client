@@ -7,7 +7,8 @@ import {
   Box,
   Chip,
   Menu,
-  MenuItem
+  MenuItem,
+  Link
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import type { User } from '../types/User';
@@ -73,6 +74,14 @@ function UserItem({ user, onUpdateUser }: Props) {
                 />
               )}
             </Box>
+            {user.shProfileURL && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                SH Profile:{' '}
+                <Link href={user.shProfileURL} target="_blank" rel="noopener">
+                  {user.shProfileURL}
+                </Link>
+              </Typography>
+            )}
           </Box>
 
           <Button
