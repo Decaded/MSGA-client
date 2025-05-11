@@ -8,22 +8,74 @@ import {
   Button,
   Box,
   IconButton,
-  Stack
+  Stack,
+  CircularProgress
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import { addWork } from '../services/mockBackend';
 
 function Report() {
   const [workUrl, setWorkUrl] = useState('');
   const [reason, setReason] = useState('');
   const [proofs, setProofs] = useState(['']);
   const [nickname, setNickname] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = e => {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = async e => {
     e.preventDefault();
-    console.log('Submitted:', { workUrl, reason, proofs, nickname });
-    navigate('/status');
+    setError('');
+
+    // Validation
+    if (!workUrl) {
+      setError('Work URL is required');
+      return;
+    }
+
+    const scribbleHubPattern = /^https:\/\/www\.scribblehub\.com\/series\/\d+/;
+    if (!scribbleHubPattern.test(workUrl)) {
+      setError('Please enter a valid ScribbleHub work URL');
+      return;
+    }
+
+    if (!proofs.some(p => p)) {
+      setError('At least one proof URL is required');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const workTitle =
+        extractTitleFromUrl(workUrl) ||
+        `Reported Work ${new Date().toISOString()}`;
+
+      await addWork({
+        title: workTitle,
+        url: workUrl,
+        reason,
+        proofs: proofs.filter(p => p),
+        reporter: nickname || undefined,
+        additionalInfo: ''
+      });
+
+      navigate('/status');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const extractTitleFromUrl = (url: string) => {
+    try {
+      const match = url.match(/series\/\d+\/([^/]+)/);
+      return match ? decodeURIComponent(match[1].replace(/-/g, ' ')) : null;
+    } catch {
+      return null;
+    }
   };
 
   const addProofField = () => {
@@ -50,6 +102,12 @@ function Report() {
         <Typography variant="h4" gutterBottom>
           Report a Work
         </Typography>
+
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <TextField
@@ -107,7 +165,7 @@ function Report() {
           />
 
           <TextField
-            label="Reason (optional)"
+            label="Reason"
             value={reason}
             onChange={e => setReason(e.target.value)}
             fullWidth
@@ -115,11 +173,16 @@ function Report() {
             rows={4}
             margin="normal"
             variant="outlined"
+            required
           />
 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button type="submit" variant="contained" size="large">
-              Submit Report
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={loading}>
+              {loading ? <CircularProgress size={24} /> : 'Submit Report'}
             </Button>
           </Box>
         </Box>
