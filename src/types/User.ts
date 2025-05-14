@@ -4,6 +4,7 @@ export interface User {
   shProfileURL: string;
   role: UserRole;
   approved: boolean;
+  token?: string;
 }
 
 export type UserRole = 'user' | 'admin';

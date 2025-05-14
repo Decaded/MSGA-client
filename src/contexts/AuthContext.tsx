@@ -10,6 +10,7 @@ import {
   logout as apiLogout
 } from '../services/mockBackend';
 import type { User } from '../types/User';
+import type { AuthResponse } from '../types/AuthResponse';
 import type { Credentials } from '../types/Credentials';
 
 interface Value {
@@ -40,16 +41,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const login: Value['login'] = async credentials => {
-    const userData = await apiLogin(credentials);
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
+    const response: AuthResponse = await apiLogin(credentials);
+    const { token, ...user } = response;
+
+    setUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('token', token);
+
+    return user;
   };
 
   const logout = () => {
     apiLogout();
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const isAdmin = () => user?.role === 'admin';

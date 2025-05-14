@@ -4,6 +4,11 @@ import type { Work } from '../types/Work';
 
 const API_BASE = 'http://localhost:3001';
 
+const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export const login = async (credentials: Credentials) => {
   const res = await fetch(`${API_BASE}/login`, {
     method: 'POST',
@@ -25,13 +30,24 @@ export const register = async (credentials: Credentials) => {
 };
 
 export const logout = async () => {
-  const res = await fetch(`${API_BASE}/logout`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/logout`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    }
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 };
 
 export const getUsers = async () => {
-  const res = await fetch(`${API_BASE}/users`);
+  const res = await fetch(`${API_BASE}/users`, {
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    }
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 };
@@ -39,7 +55,10 @@ export const getUsers = async () => {
 export const updateUser = async (id: User['id'], updates: Partial<User>) => {
   const res = await fetch(`${API_BASE}/users/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(updates)
   });
   if (!res.ok) throw new Error(await res.text());
@@ -70,7 +89,13 @@ export const addWork = async (newWork: Partial<Work>) => {
 };
 
 export const deleteWork = async (id: Work['id']) => {
-  const res = await fetch(`${API_BASE}/works/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/works/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    }
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 };
@@ -81,10 +106,12 @@ export const updateWorkStatus = async (
 ) => {
   const res = await fetch(`${API_BASE}/works/${id}/status`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ status: newStatus })
   });
-  console.log(newStatus);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 };
@@ -92,7 +119,10 @@ export const updateWorkStatus = async (
 export const updateWork = async (id: Work['id'], updates: Partial<Work>) => {
   const res = await fetch(`${API_BASE}/works/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(updates)
   });
   if (!res.ok) throw new Error(await res.text());
@@ -101,7 +131,11 @@ export const updateWork = async (id: Work['id'], updates: Partial<Work>) => {
 
 export const approveWork = async (id: Work['id']) => {
   const res = await fetch(`${API_BASE}/works/${id}/approve`, {
-    method: 'PUT'
+    method: 'PUT',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    }
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
