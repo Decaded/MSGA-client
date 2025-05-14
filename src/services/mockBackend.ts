@@ -81,7 +81,7 @@ export const getWorks = async (): Promise<Work[]> => {
 export const addWork = async (newWork: Partial<Work>) => {
   const res = await fetch(`${API_BASE}/works`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify(newWork)
   });
   if (!res.ok) throw new Error(await res.text());

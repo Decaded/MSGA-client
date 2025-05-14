@@ -42,12 +42,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login: Value['login'] = async credentials => {
     const response: AuthResponse = await apiLogin(credentials);
-    const { token, ...user } = response;
+    const { token, ...userData } = response;
+
+    const user: User = {
+      id: userData.id,
+      username: userData.username,
+      shProfileURL: userData.shProfileURL,
+      role: userData.role,
+      approved: userData.approved
+    };
 
     setUser(user);
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('token', token);
-
     return user;
   };
 
