@@ -4,14 +4,7 @@ import {
   type PropsWithChildren,
   type ComponentProps
 } from 'react';
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Container,
-  CircularProgress
-} from '@mui/material';
+import { Box, Typography, Container, CircularProgress } from '@mui/material';
 import { getUsers, updateUser } from '../services/mockBackend';
 import UserItem from '../components/UserItem';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,7 +31,7 @@ function TabPanel({ children, value, index, ...other }: Props) {
 }
 
 function Admin() {
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAdmin } = useAuth();
@@ -93,14 +86,7 @@ function Admin() {
         Admin Dashboard
       </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={tabValue}
-          onChange={(_, newValue) => setTabValue(newValue)}>
-          <Tab label="User Management" />
-          <Tab label="Pending Approvals" />
-        </Tabs>
-      </Box>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}></Box>
 
       <TabPanel value={tabValue} index={0}>
         {users.length === 0 ? (
@@ -114,11 +100,6 @@ function Admin() {
             />
           ))
         )}
-      </TabPanel>
-
-      <TabPanel value={tabValue} index={1}>
-        {/* Placeholder for pending approvals */}
-        <Typography>Pending approval items will appear here</Typography>
       </TabPanel>
     </Container>
   );
