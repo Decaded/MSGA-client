@@ -11,7 +11,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
 
   return (
     <AppBar position="static" elevation={0}>
@@ -37,12 +37,16 @@ export default function Header() {
             Status
           </Button>
 
+          {isAdmin() && (
+            <Button color="inherit" component={RouterLink} to="/admin">
+              Admin
+            </Button>
+          )}
+
           {user ? (
-            <>
-              <Button color="secondary" variant="outlined" onClick={logout}>
-                Logout
-              </Button>
-            </>
+            <Button color="secondary" variant="outlined" onClick={logout}>
+              Logout
+            </Button>
           ) : (
             <>
               <Button color="inherit" component={RouterLink} to="/login">
