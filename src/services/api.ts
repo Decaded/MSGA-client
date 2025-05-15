@@ -5,7 +5,7 @@ import type {
 import type { User } from '../types/User';
 import type { Work } from '../types/Work';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_BASE!;
 
 const getAuthToken = () => localStorage.getItem('token');
 
