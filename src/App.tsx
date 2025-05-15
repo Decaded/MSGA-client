@@ -25,7 +25,6 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/report" element={<Report />} />
                 <Route path="/status" element={<Status />} />
-                <Route path="/takedowns" element={<Takedowns />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route
