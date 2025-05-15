@@ -1,5 +1,8 @@
-export interface Credentials {
+export interface LoginCredentials {
   username: string;
-  shProfileURL: string;
   password: string;
+}
+
+export interface RegisterCredentials extends LoginCredentials {
+  shProfileURL: string;
 }
