@@ -130,11 +130,36 @@ function Report() {
 
       setSubmissionSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit report');
+      let errorMessage = 'Failed to submit report';
+
+      if (err instanceof Error) {
+        try {
+          const errorData = JSON.parse(err.message);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
       setOpenError(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatUrl = (url: string) => {
+    if (!url) return url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
+  const updateProof = (index: number, value: string) => {
+    const newProofs = [...proofs];
+    newProofs[index] = formatUrl(value);
+    setProofs(newProofs);
   };
 
   const extractTitleFromUrl = (url: string) => {
@@ -156,12 +181,6 @@ function Report() {
       newProofs.splice(index, 1);
       setProofs(newProofs);
     }
-  };
-
-  const updateProof = (index: number, value: string) => {
-    const newProofs = [...proofs];
-    newProofs[index] = value;
-    setProofs(newProofs);
   };
 
   return (
