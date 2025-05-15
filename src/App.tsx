@@ -11,6 +11,8 @@ import Login from './components/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   return (
