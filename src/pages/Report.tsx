@@ -1,4 +1,4 @@
-import { useState, type FormEventHandler } from 'react';
+import { useState, type FormEventHandler, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -9,13 +9,24 @@ import {
   Box,
   IconButton,
   Stack,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Alert,
+  Collapse
 } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { addWork } from '../services/mockBackend';
 
 function Report() {
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [openError, setOpenError] = useState(false);
   const [workUrl, setWorkUrl] = useState('');
   const [reason, setReason] = useState('');
   const [proofs, setProofs] = useState(['']);
@@ -24,24 +35,56 @@ function Report() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (submissionSuccess) {
+      timer = setTimeout(() => {
+        setSubmissionSuccess(false);
+        navigate('/status');
+      }, 3000);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [submissionSuccess, navigate]);
+
+  useEffect(() => {
+    let errorTimer: ReturnType<typeof setTimeout>;
+
+    if (openError) {
+      errorTimer = setTimeout(() => {
+        setOpenError(false);
+      }, 3000);
+    }
+
+    return () => {
+      if (errorTimer) clearTimeout(errorTimer);
+    };
+  }, [openError]);
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async e => {
     e.preventDefault();
     setError('');
+    setOpenError(false);
 
     // Validation
     if (!workUrl) {
       setError('Work URL is required');
+      setOpenError(true);
       return;
     }
 
     const scribbleHubPattern = /^https:\/\/www\.scribblehub\.com\/series\/\d+/;
     if (!scribbleHubPattern.test(workUrl)) {
       setError('Please enter a valid ScribbleHub work URL');
+      setOpenError(true);
       return;
     }
 
     if (!proofs.some(p => p)) {
       setError('At least one proof URL is required');
+      setOpenError(true);
       return;
     }
 
@@ -61,9 +104,10 @@ function Report() {
         additionalInfo: ''
       });
 
-      navigate('/status');
+      setSubmissionSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit report');
+      setOpenError(true);
     } finally {
       setLoading(false);
     }
@@ -103,11 +147,22 @@ function Report() {
           Report a Work
         </Typography>
 
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
+        <Collapse in={openError}>
+          <Alert
+            severity="error"
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => setOpenError(false)}>
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+            sx={{ mb: 2 }}>
             {error}
-          </Typography>
-        )}
+          </Alert>
+        </Collapse>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <TextField
@@ -186,6 +241,40 @@ function Report() {
             </Button>
           </Box>
         </Box>
+        <Dialog
+          open={submissionSuccess}
+          onClose={() => {
+            setSubmissionSuccess(false);
+            navigate('/status');
+          }}>
+          <DialogTitle sx={{ color: 'success.main' }}>
+            <Box display="flex" alignItems="center">
+              <CheckCircleIcon sx={{ mr: 1 }} />
+              Report Submitted Successfully!
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Your report has been received and will be reviewed by our team.
+            </DialogContentText>
+            <DialogContentText sx={{ mt: 2 }}>
+              You'll be redirected to the status page in 3 seconds...
+            </DialogContentText>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <CircularProgress size={48} color="success" />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setSubmissionSuccess(false);
+                navigate('/status');
+              }}
+              color="primary">
+              View Status Now
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Container>
   );
