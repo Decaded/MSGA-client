@@ -1,4 +1,4 @@
-import type { Credentials } from '../types/Credentials';
+import type { LoginCredentials, RegisterCredentials } from '../types/Credentials';
 import type { User } from '../types/User';
 import type { Work } from '../types/Work';
 
@@ -9,7 +9,7 @@ const getAuthHeaders = (): HeadersInit => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export const login = async (credentials: Credentials) => {
+export const login = async (credentials: LoginCredentials) => {
   const res = await fetch(`${API_BASE}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -19,7 +19,7 @@ export const login = async (credentials: Credentials) => {
   return res.json();
 };
 
-export const register = async (credentials: Credentials) => {
+export const register = async (credentials: RegisterCredentials) => {
   const res = await fetch(`${API_BASE}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
