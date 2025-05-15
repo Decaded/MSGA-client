@@ -5,7 +5,7 @@ import {
   type ComponentProps
 } from 'react';
 import { Box, Typography, Container, CircularProgress } from '@mui/material';
-import { getUsers, updateUser, deleteUser } from '../services/mockBackend';
+import { getUsers, updateUser, deleteUser } from '../services/api';
 import UserItem from '../components/UserItem';
 import { useAuth } from '../contexts/AuthContext';
 import type { User } from '../types/User';

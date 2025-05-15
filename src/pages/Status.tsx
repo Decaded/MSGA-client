@@ -9,12 +9,7 @@ import {
   Button
 } from '@mui/material';
 import WorkItem from '../components/WorkItem';
-import {
-  getWorks,
-  updateWork,
-  deleteWork,
-  approveWork
-} from '../services/mockBackend';
+import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Work } from '../types/Work';
 

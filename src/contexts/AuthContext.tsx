@@ -5,10 +5,7 @@ import {
   useEffect,
   type PropsWithChildren
 } from 'react';
-import {
-  login as apiLogin,
-  logout as apiLogout
-} from '../services/mockBackend';
+import { login as apiLogin, logout as apiLogout } from '../services/api';
 import type { User } from '../types/User';
 import type { AuthResponse } from '../types/AuthResponse';
 import type { LoginCredentials } from '../types/Credentials';
