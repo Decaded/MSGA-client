@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -6,7 +6,8 @@ import {
   ToggleButtonGroup,
   Box,
   CircularProgress,
-  Button
+  Button,
+  TextField
 } from '@mui/material';
 import WorkItem from '../components/WorkItem';
 import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
@@ -28,6 +29,7 @@ function Status() {
   const [filter, setFilter] = useState('all');
   const { user, isAdmin, isModerator } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 15;
 
   useEffect(() => {
@@ -44,28 +46,37 @@ function Status() {
     fetchWorks();
   }, []);
 
+  // Reset page when filter or search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, searchTerm]);
 
-  const filteredWorks = Array.isArray(works)
-    ? works.filter(work => {
-        const canView =
-          work.approved ||
-          (user && (user.username === work.reporter || isModerator()));
-        return canView && (filter === 'all' || work.status === filter);
-      })
-    : [];
+  const filteredWorks = useMemo(() => {
+    if (!Array.isArray(works)) return [];
+
+    return works.filter(work => {
+      const canView =
+        work.approved ||
+        (user && (user.username === work.reporter || isModerator()));
+
+      const matchesFilter = filter === 'all' || work.status === filter;
+      const matchesSearch = work.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      return canView && matchesFilter && matchesSearch;
+    });
+  }, [works, user, isModerator, filter, searchTerm]);
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredWorks.length / itemsPerPage)
   );
 
-  const paginatedWorks = filteredWorks.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedWorks = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredWorks.slice(start, start + itemsPerPage);
+  }, [filteredWorks, currentPage]);
 
   const handleUpdateWork = async (id: Work['id'], updates: Partial<Work>) => {
     try {
@@ -75,16 +86,6 @@ function Status() {
       console.error('Error updating work:', error);
     }
   };
-
-  // TODO: maybe use it xd
-  //   const handleUpdateStatus = async (id: Work['id'], status: Work['status']) => {
-  //     try {
-  //       const updatedWork = await updateWorkStatus(id, status);
-  //       setWorks(works.map(work => (work.id === id ? updatedWork : work)));
-  //     } catch (error) {
-  //       console.error('Error updating work status:', error);
-  //     }
-  //   };
 
   const handleDeleteWork = async (id: Work['id']) => {
     try {
@@ -116,11 +117,43 @@ function Status() {
     );
   }
 
+  const PaginationControls = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+      <Button
+        variant="outlined"
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(prev => prev - 1)}
+        sx={{ mx: 1 }}>
+        Prev
+      </Button>
+      <Typography variant="body1" sx={{ alignSelf: 'center', mx: 2 }}>
+        Page {currentPage} of {totalPages}
+      </Typography>
+      <Button
+        variant="outlined"
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage(prev => prev + 1)}
+        sx={{ mx: 1 }}>
+        Next
+      </Button>
+    </Box>
+  );
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>
         Report Status
       </Typography>
+
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          label="Search by title"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
 
       <Box sx={{ mb: 3 }}>
         <ToggleButtonGroup
@@ -142,51 +175,33 @@ function Status() {
         </ToggleButtonGroup>
       </Box>
 
+      <PaginationControls />
+
       {paginatedWorks.length === 0 ? (
         <Typography>No works found matching your criteria.</Typography>
       ) : (
-        <>
-          {paginatedWorks.map(work => (
-            <Box key={`work-${work.id}-${work.dateReported}`} sx={{ mb: 2 }}>
-              <WorkItem
-                work={work}
-                onUpdate={user ? handleUpdateWork : undefined}
-                onDelete={isAdmin() ? handleDeleteWork : undefined}
-                onApprove={user ? handleApproveWork : undefined}
-              />
-              {work.status === 'pending_review' && (user || isAdmin()) && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleApproveWork(work.id)}
-                  sx={{ mt: 1 }}>
-                  Approve
-                </Button>
-              )}
-            </Box>
-          ))}
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <Button
-              variant="outlined"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-              sx={{ mx: 1 }}>
-              Prev
-            </Button>
-            <Typography variant="body1" sx={{ alignSelf: 'center', mx: 2 }}>
-              Page {currentPage} of {totalPages}
-            </Typography>
-            <Button
-              variant="outlined"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              sx={{ mx: 1 }}>
-              Next
-            </Button>
+        paginatedWorks.map(work => (
+          <Box key={`work-${work.id}-${work.dateReported}`} sx={{ mb: 2 }}>
+            <WorkItem
+              work={work}
+              onUpdate={user ? handleUpdateWork : undefined}
+              onDelete={isAdmin() ? handleDeleteWork : undefined}
+              onApprove={user ? handleApproveWork : undefined}
+            />
+            {work.status === 'pending_review' && (user || isAdmin()) && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleApproveWork(work.id)}
+                sx={{ mt: 1 }}>
+                Approve
+              </Button>
+            )}
           </Box>
-        </>
+        ))
       )}
+
+      <PaginationControls />
     </Container>
   );
 }
