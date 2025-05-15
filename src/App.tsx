@@ -6,7 +6,6 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import Report from './pages/Report';
 import Status from './pages/Status';
-import Takedowns from './pages/Takedowns';
 import Admin from './pages/Admin';
 import Login from './components/Login';
 import Register from './pages/Register';
