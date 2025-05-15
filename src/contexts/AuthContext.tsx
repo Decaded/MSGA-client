@@ -11,12 +11,12 @@ import {
 } from '../services/mockBackend';
 import type { User } from '../types/User';
 import type { AuthResponse } from '../types/AuthResponse';
-import type { Credentials } from '../types/Credentials';
+import type { LoginCredentials } from '../types/Credentials';
 
 interface Value {
   user: User | null;
   loading: boolean;
-  login: (credentials: Credentials) => Promise<User>;
+  login: (credentials: LoginCredentials) => Promise<User>;
   logout: () => void;
   isAdmin: () => boolean;
   isModerator: () => boolean;
