@@ -43,11 +43,22 @@ export default function Register() {
       await register({ username, shProfileURL, password });
       navigate('/');
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Registration failed. Please try again.'
-      );
+      let errorMessage = 'Registration failed. Please try again.';
+
+      if (err instanceof Error) {
+        try {
+          // Try to parse the error message as JSON
+          const errorData = JSON.parse(err.message);
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // If not JSON, use the original error message
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -56,15 +67,42 @@ export default function Register() {
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 2 }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
           Register
         </Typography>
-        <Typography variant="body1" gutterBottom>
-          Your account must be approved by an admin before you can log in. <br /> SH profile link is needed for user verification.
-        </Typography>
+        <Box
+          sx={{
+            backgroundColor: 'info.dark',
+            borderLeft: '4px solid',
+            borderColor: 'info.main',
+            p: 2,
+            mb: 3
+          }}>
+          <Typography variant="body1" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Important Account Approval Notice
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            Your account must be manually approved by an administrator before
+            you can log in. This process may take up to 24-48 hours.
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mt: 1, fontStyle: 'italic', fontWeight: 'bold' }}>
+            Please ensure your Scribble Hub profile URL is correct, and the
+            profile is accessible, as it will be used for verification.
+          </Typography>
+        </Box>
 
         {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
+          <Typography
+            color="error"
+            sx={{
+              mb: 2,
+              p: 2,
+              backgroundColor: 'error.dark',
+              color: 'error.contrastText',
+              borderRadius: 1
+            }}>
             {error}
           </Typography>
         )}
