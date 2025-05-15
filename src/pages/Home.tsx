@@ -12,6 +12,14 @@ function Home() {
         enjoy content as intended by the authors.
       </p>
 
+      <div className="actions">
+        <Link to="/report" className="action-button">
+          Report a Work
+        </Link>
+        <Link to="/status" className="action-button">
+          Check Status
+        </Link>
+      </div>
       <p className="more-info">
         Read more{' '}
         <a
@@ -22,15 +30,6 @@ function Home() {
         </a>
         .
       </p>
-
-      <div className="actions">
-        <Link to="/report" className="action-button">
-          Report a Work
-        </Link>
-        <Link to="/status" className="action-button">
-          Check Status
-        </Link>
-      </div>
     </div>
   );
 }
