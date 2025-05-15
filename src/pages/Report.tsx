@@ -35,6 +35,19 @@ function Report() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const isValidUrl = (url: string) => {
+    try {
+      const urlPattern =
+        /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}/i;
+      if (!urlPattern.test(url)) return false;
+
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (submissionSuccess) {
@@ -82,10 +95,21 @@ function Report() {
       return;
     }
 
-    if (!proofs.some(p => p)) {
+    const validProofs = proofs.filter(p => p);
+    if (validProofs.length === 0) {
       setError('At least one proof URL is required');
       setOpenError(true);
       return;
+    }
+
+    for (const proof of validProofs) {
+      if (!isValidUrl(proof)) {
+        setError(
+          `"${proof}" is not a valid URL. Please include http:// or https://`
+        );
+        setOpenError(true);
+        return;
+      }
     }
 
     setLoading(true);
@@ -189,10 +213,22 @@ function Report() {
                   label={`Proof ${index + 1}`}
                   value={proof}
                   onChange={e => updateProof(index, e.target.value)}
+                  onBlur={() => {
+                    if (proof && !isValidUrl(proof)) {
+                      setError(`"${proof}" is not a valid URL`);
+                      setOpenError(true);
+                    }
+                  }}
                   placeholder="https://example.com/proof"
                   fullWidth
                   required={index === 0}
                   variant="outlined"
+                  error={!!proof && !isValidUrl(proof)}
+                  helperText={
+                    !!proof && !isValidUrl(proof)
+                      ? 'Must start with http:// or https:// and be a valid URL'
+                      : ''
+                  }
                 />
                 {proofs.length > 1 && (
                   <IconButton
