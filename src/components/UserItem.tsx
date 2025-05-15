@@ -21,9 +21,10 @@ const roleColors = {
 interface Props {
   user: User;
   onUpdateUser: (userId: User['id'], updates: Partial<User>) => void;
+  onDeleteUser?: (userId: User['id']) => void;
 }
 
-function UserItem({ user, onUpdateUser }: Props) {
+function UserItem({ user, onUpdateUser, onDeleteUser }: Props) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>();
   const open = Boolean(anchorEl);
 
@@ -104,6 +105,22 @@ function UserItem({ user, onUpdateUser }: Props) {
             {user.approved && (
               <MenuItem onClick={() => handleAction('block')}>
                 Block User
+              </MenuItem>
+            )}
+            {onDeleteUser && (
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  if (
+                    confirm(
+                      `Are you sure you want to permanently delete ${user.username}?`
+                    )
+                  ) {
+                    onDeleteUser(user.id);
+                  }
+                }}
+                sx={{ color: 'error.main' }}>
+                Delete User
               </MenuItem>
             )}
           </Menu>

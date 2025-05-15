@@ -1,4 +1,7 @@
-import type { LoginCredentials, RegisterCredentials } from '../types/Credentials';
+import type {
+  LoginCredentials,
+  RegisterCredentials
+} from '../types/Credentials';
 import type { User } from '../types/User';
 import type { Work } from '../types/Work';
 
@@ -60,6 +63,18 @@ export const updateUser = async (id: User['id'], updates: Partial<User>) => {
       ...getAuthHeaders()
     },
     body: JSON.stringify(updates)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+};
+
+export const deleteUser = async (id: User['id']) => {
+  const res = await fetch(`${API_BASE}/users/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    }
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

@@ -5,7 +5,7 @@ import {
   type ComponentProps
 } from 'react';
 import { Box, Typography, Container, CircularProgress } from '@mui/material';
-import { getUsers, updateUser } from '../services/mockBackend';
+import { getUsers, updateUser, deleteUser } from '../services/mockBackend';
 import UserItem from '../components/UserItem';
 import { useAuth } from '../contexts/AuthContext';
 import type { User } from '../types/User';
@@ -62,6 +62,27 @@ function Admin() {
     }
   };
 
+  // In the handleDeleteUser function
+  const handleDeleteUser = async (id: User['id']) => {
+    try {
+      await deleteUser(id);
+      setUsers(users.filter(user => user.id !== id));
+    } catch (err) {
+      let errorMessage = 'Failed to delete user';
+
+      if (err instanceof Error) {
+        try {
+          const errorData = JSON.parse(err.message);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = err.message;
+        }
+      }
+
+      alert(errorMessage);
+    }
+  };
+
   if (loading) {
     return (
       <Container sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -97,6 +118,7 @@ function Admin() {
               key={user.id}
               user={user}
               onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
             />
           ))
         )}
