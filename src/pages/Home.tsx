@@ -12,6 +12,17 @@ function Home() {
         enjoy content as intended by the authors.
       </p>
 
+      <p className="more-info">
+        Read more{' '}
+        <a
+          href="https://forum.scribblehub.com/threads/megathread-for-finding-identifying-and-reporting-translations.22997/"
+          target="_blank"
+          rel="noopener noreferrer">
+          here
+        </a>
+        .
+      </p>
+
       <div className="actions">
         <Link to="/report" className="action-button">
           Report a Work

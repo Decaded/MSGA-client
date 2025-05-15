@@ -253,3 +253,18 @@ button:hover {
   max-width: 1000px;
   margin: 0 auto;
 }
+
+.more-info {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.more-info a {
+  color: #bbb;
+  text-decoration: underline;
+}
+
+.more-info a:hover {
+  color: #fff;
+}
