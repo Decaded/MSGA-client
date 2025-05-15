@@ -176,9 +176,7 @@ function Status() {
 
       <Box sx={{ mb: 3 }}>
         <TextField
-          label={
-            searchInput ? `Searching: "${searchInput}"` : 'Search by title'
-          }
+          label="Search by title or URL"
           value={searchInput}
           onChange={handleSearchChange}
           fullWidth
