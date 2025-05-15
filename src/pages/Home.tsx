@@ -8,8 +8,7 @@ function Home() {
       <p className="description">
         MSGA is a community-driven initiative aimed at identifying, tracking,
         and reporting unauthorized translations on Scribble Hub. Our goal is to
-        maintain the integrity of original works and ensure that readers can
-        enjoy content as intended by the authors.
+        help administrators identify and remove translations.
       </p>
 
       <div className="actions">
