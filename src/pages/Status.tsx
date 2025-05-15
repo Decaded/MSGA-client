@@ -9,6 +9,8 @@ import {
   Button,
   TextField
 } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
+import { useRef } from 'react';
 import WorkItem from '../components/WorkItem';
 import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,8 +31,35 @@ function Status() {
   const [filter, setFilter] = useState('all');
   const { user, isAdmin, isModerator } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawSearch = searchParams.get('search') || '';
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [searchInput, setSearchInput] = useState(rawSearch);
   const itemsPerPage = 15;
+
+  // Sync search input with actual search term
+  useEffect(() => {
+    setSearchInput(rawSearch);
+  }, [rawSearch]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchInput(newValue);
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    debounceTimer.current = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (newValue) {
+          next.set('search', newValue);
+        } else {
+          next.delete('search');
+        }
+        return next;
+      });
+    }, 300); // 300ms debounce
+  };
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -49,7 +78,7 @@ function Status() {
   // Reset page when filter or search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, searchTerm]);
+  }, [filter, rawSearch]);
 
   const filteredWorks = useMemo(() => {
     if (!Array.isArray(works)) return [];
@@ -62,11 +91,11 @@ function Status() {
       const matchesFilter = filter === 'all' || work.status === filter;
       const matchesSearch = work.title
         .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+        .includes(rawSearch.toLowerCase());
 
       return canView && matchesFilter && matchesSearch;
     });
-  }, [works, user, isModerator, filter, searchTerm]);
+  }, [works, user, isModerator, filter, rawSearch]);
 
   const totalPages = Math.max(
     1,
@@ -147,9 +176,11 @@ function Status() {
 
       <Box sx={{ mb: 3 }}>
         <TextField
-          label="Search by title"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          label={
+            searchInput ? `Searching: "${searchInput}"` : 'Search by title'
+          }
+          value={searchInput}
+          onChange={handleSearchChange}
           fullWidth
           size="small"
         />
