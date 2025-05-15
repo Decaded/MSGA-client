@@ -118,11 +118,14 @@ function Status() {
           onChange={(_, newFilter) => setFilter(newFilter)}
           aria-label="work status filter"
           sx={{ flexWrap: 'wrap', gap: 1 }}>
-          {statusFilters.map(({ value, label }) => (
-            <ToggleButton key={value} value={value}>
-              {label}
-            </ToggleButton>
-          ))}
+          {statusFilters.map(({ value, label }) => {
+            if (value === 'pending_review' && !user) return null;
+            return (
+              <ToggleButton key={value} value={value}>
+                {label}
+              </ToggleButton>
+            );
+          })}
         </ToggleButtonGroup>
       </Box>
 
