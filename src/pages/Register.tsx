@@ -9,7 +9,12 @@ import {
   Button,
   Box,
   Link,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 
 export default function Register() {
@@ -19,7 +24,13 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
+
+  const extractUsernameFromURL = (url: string) => {
+    const match = url.match(/profile\/\d+\/([^\\/]+)/);
+    return match ? match[1] : null;
+  };
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async e => {
     e.preventDefault();
@@ -36,8 +47,18 @@ export default function Register() {
       return;
     }
 
+    const urlUsername = extractUsernameFromURL(shProfileURL);
+    if (urlUsername && username.toLowerCase() !== urlUsername.toLowerCase()) {
+      setShowConfirmation(true);
+      return;
+    }
+    await proceedWithRegistration();
+  };
+
+  const proceedWithRegistration = async () => {
     setLoading(true);
     setError('');
+    setShowConfirmation(false);
 
     try {
       await register({ username, shProfileURL, password });
@@ -78,18 +99,27 @@ export default function Register() {
             p: 2,
             mb: 3
           }}>
-          <Typography variant="body1" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Typography
+            variant="body1"
+            gutterBottom
+            sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
             Important Account Approval Notice
           </Typography>
-          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold' }}>
             Your account must be manually approved by an administrator before
-            you can log in. This process may take up to 24-48 hours.
+            you can log in. This process may take up to 24 hours.
           </Typography>
           <Typography
             variant="body2"
             sx={{ mt: 1, fontStyle: 'italic', fontWeight: 'bold' }}>
             Please ensure your Scribble Hub profile URL is correct, and the
             profile is accessible, as it will be used for verification.
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{ mt: 2, fontWeight: 'bold', fontStyle: 'italic' }}>
+            Only selected accounts will be approved.
           </Typography>
         </Box>
 
@@ -160,6 +190,24 @@ export default function Register() {
             </Button>
           </Box>
         </Box>
+        <Dialog
+          open={showConfirmation}
+          onClose={() => setShowConfirmation(false)}>
+          <DialogTitle>Username Mismatch</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Your username doesn't match the one in your Scribble Hub URL. This
+              might increase verification time. Are you sure you want to
+              continue?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowConfirmation(false)}>Cancel</Button>
+            <Button onClick={proceedWithRegistration} color="primary" autoFocus>
+              Continue
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Container>
   );
