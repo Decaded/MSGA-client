@@ -16,8 +16,10 @@ import {
   DialogContentText,
   DialogTitle
 } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export default function Register() {
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [username, setUsername] = useState('');
   const [shProfileURL, setScribbleHubAccountURL] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +64,12 @@ export default function Register() {
 
     try {
       await register({ username, shProfileURL, password });
-      navigate('/');
+      setRegistrationSuccess(true);
+
+      setTimeout(() => {
+        setRegistrationSuccess(false);
+        navigate('/');
+      }, 5000); // 5 second delay before redirect
     } catch (err) {
       let errorMessage = 'Registration failed. Please try again.';
 
@@ -205,6 +212,41 @@ export default function Register() {
             <Button onClick={() => setShowConfirmation(false)}>Cancel</Button>
             <Button onClick={proceedWithRegistration} color="primary" autoFocus>
               Continue
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={registrationSuccess}
+          onClose={() => {
+            setRegistrationSuccess(false);
+            navigate('/');
+          }}>
+          <DialogTitle sx={{ color: 'success.main' }}>
+            <Box display="flex" alignItems="center">
+              <CheckCircleIcon sx={{ mr: 1 }} />
+              Registration Successful!
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Your account has been successfully registered.
+            </DialogContentText>
+            <DialogContentText sx={{ mt: 2 }}>
+              You'll be redirected automatically in 5 seconds...
+            </DialogContentText>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <CircularProgress size={48} color="success" />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setRegistrationSuccess(false);
+                navigate('/');
+              }}
+              color="primary">
+              Go Now
             </Button>
           </DialogActions>
         </Dialog>
