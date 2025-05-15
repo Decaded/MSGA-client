@@ -27,6 +27,8 @@ function Status() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const { user, isAdmin, isModerator } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -42,6 +44,10 @@ function Status() {
     fetchWorks();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
   const filteredWorks = Array.isArray(works)
     ? works.filter(work => {
         const canView =
@@ -50,6 +56,16 @@ function Status() {
         return canView && (filter === 'all' || work.status === filter);
       })
     : [];
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredWorks.length / itemsPerPage)
+  );
+
+  const paginatedWorks = filteredWorks.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleUpdateWork = async (id: Work['id'], updates: Partial<Work>) => {
     try {
@@ -110,7 +126,9 @@ function Status() {
         <ToggleButtonGroup
           value={filter}
           exclusive
-          onChange={(_, newFilter) => setFilter(newFilter)}
+          onChange={(_, newFilter) => {
+            if (newFilter !== null) setFilter(newFilter);
+          }}
           aria-label="work status filter"
           sx={{ flexWrap: 'wrap', gap: 1 }}>
           {statusFilters.map(({ value, label }) => {
@@ -124,28 +142,50 @@ function Status() {
         </ToggleButtonGroup>
       </Box>
 
-      {filteredWorks.length === 0 ? (
+      {paginatedWorks.length === 0 ? (
         <Typography>No works found matching your criteria.</Typography>
       ) : (
-        filteredWorks.map(work => (
-          <Box key={`work-${work.id}-${work.dateReported}`} sx={{ mb: 2 }}>
-            <WorkItem
-              work={work}
-              onUpdate={user ? handleUpdateWork : undefined}
-              onDelete={isAdmin() ? handleDeleteWork : undefined}
-              onApprove={user ? handleApproveWork : undefined}
-            />
-            {work.status === 'pending_review' && (user || isAdmin()) && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleApproveWork(work.id)}
-                sx={{ mt: 1 }}>
-                Approve
-              </Button>
-            )}
+        <>
+          {paginatedWorks.map(work => (
+            <Box key={`work-${work.id}-${work.dateReported}`} sx={{ mb: 2 }}>
+              <WorkItem
+                work={work}
+                onUpdate={user ? handleUpdateWork : undefined}
+                onDelete={isAdmin() ? handleDeleteWork : undefined}
+                onApprove={user ? handleApproveWork : undefined}
+              />
+              {work.status === 'pending_review' && (user || isAdmin()) && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleApproveWork(work.id)}
+                  sx={{ mt: 1 }}>
+                  Approve
+                </Button>
+              )}
+            </Box>
+          ))}
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Button
+              variant="outlined"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              sx={{ mx: 1 }}>
+              Prev
+            </Button>
+            <Typography variant="body1" sx={{ alignSelf: 'center', mx: 2 }}>
+              Page {currentPage} of {totalPages}
+            </Typography>
+            <Button
+              variant="outlined"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              sx={{ mx: 1 }}>
+              Next
+            </Button>
           </Box>
-        ))
+        </>
       )}
     </Container>
   );
