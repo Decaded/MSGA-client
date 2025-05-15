@@ -89,9 +89,9 @@ function Status() {
         (user && (user.username === work.reporter || isModerator()));
 
       const matchesFilter = filter === 'all' || work.status === filter;
-      const matchesSearch = work.title
-        .toLowerCase()
-        .includes(rawSearch.toLowerCase());
+      const matchesSearch =
+        work.title.toLowerCase().includes(rawSearch.toLowerCase()) ||
+        work.url?.toLowerCase().includes(rawSearch.toLowerCase());
 
       return canView && matchesFilter && matchesSearch;
     });
