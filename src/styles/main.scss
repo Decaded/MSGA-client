@@ -220,6 +220,7 @@ button:hover {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .action-button {
@@ -267,4 +268,17 @@ button:hover {
 
 .more-info a:hover {
   color: #fff;
+}
+
+@media (max-width: 500px) {
+  .actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-button {
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+  }
 }
