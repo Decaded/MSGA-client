@@ -19,6 +19,7 @@ function Home() {
           Check Status
         </Link>
       </div>
+
       <p className="more-info">
         Read more{' '}
         <a
@@ -26,6 +27,40 @@ function Home() {
           target="_blank"
           rel="noopener noreferrer">
           here
+        </a>
+        .
+      </p>
+
+      <p
+        className="beta-warning"
+        style={{
+          marginTop: '2rem',
+          fontStyle: 'italic',
+          color: '#ccc',
+          backgroundColor: '#222',
+          padding: '1rem',
+          borderRadius: '8px'
+        }}>
+        This is a <strong>beta version</strong>. Bugs are expected. Please
+        report any issues directly to <strong>Decaded</strong>, preferably on
+        the{' '}
+        <a
+          href="https://forum.scribblehub.com/members/decaded.106713/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#4fa3ff', textDecoration: 'underline' }}>
+          SH forum
+        </a>
+        .
+        <br />
+        <br />
+        You can find more info about the author (and other contact options) at{' '}
+        <a
+          href="https://decaded.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#4fa3ff', textDecoration: 'underline' }}>
+          decaded.dev
         </a>
         .
       </p>
