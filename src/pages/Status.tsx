@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -10,7 +10,6 @@ import {
   TextField
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
-import { useRef } from 'react';
 import WorkItem from '../components/WorkItem';
 import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,6 +28,8 @@ function Status() {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<'id' | 'title' | 'dateReported'>('id');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const { user, isAdmin, isModerator } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,7 +59,7 @@ function Status() {
         }
         return next;
       });
-    }, 300); // 300ms debounce
+    }, 300);
   };
 
   useEffect(() => {
@@ -83,7 +84,7 @@ function Status() {
   const filteredWorks = useMemo(() => {
     if (!Array.isArray(works)) return [];
 
-    return works.filter(work => {
+    const filtered = works.filter(work => {
       const canView =
         work.approved ||
         (user && (user.username === work.reporter || isModerator()));
@@ -95,7 +96,25 @@ function Status() {
 
       return canView && matchesFilter && matchesSearch;
     });
-  }, [works, user, isModerator, filter, rawSearch]);
+
+    const sorted = [...filtered].sort((a, b) => {
+      let compareVal = 0;
+
+      if (sortBy === 'title') {
+        compareVal = a.title.localeCompare(b.title);
+      } else if (sortBy === 'dateReported') {
+        const aTime = a.dateReported ? new Date(a.dateReported).getTime() : 0;
+        const bTime = b.dateReported ? new Date(b.dateReported).getTime() : 0;
+        compareVal = aTime - bTime;
+      } else {
+        compareVal = a.id - b.id;
+      }
+
+      return sortOrder === 'asc' ? compareVal : -compareVal;
+    });
+
+    return sorted;
+  }, [works, user, isModerator, filter, rawSearch, sortBy, sortOrder]);
 
   const totalPages = Math.max(
     1,
@@ -128,11 +147,11 @@ function Status() {
   const handleApproveWork = async (id: Work['id']) => {
     try {
       const approvedWork = await approveWork(id);
-      setWorks(prevWorks => {
-        return prevWorks.map(work =>
+      setWorks(prevWorks =>
+        prevWorks.map(work =>
           work.id === approvedWork.id ? approvedWork : work
-        );
-      });
+        )
+      );
     } catch (error) {
       console.error('Error approving work:', error);
     }
@@ -202,6 +221,32 @@ function Status() {
             );
           })}
         </ToggleButtonGroup>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <TextField
+          select
+          label="Sort By"
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as typeof sortBy)}
+          slotProps={{
+            select: {
+              native: true
+            }
+          }}
+          size="small">
+          <option value="id">ID</option>
+          <option value="title">Title</option>
+          <option value="dateReported">Date Reported</option>
+        </TextField>
+
+        <Button
+          variant="outlined"
+          onClick={() =>
+            setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))
+          }>
+          {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+        </Button>
       </Box>
 
       <PaginationControls />
