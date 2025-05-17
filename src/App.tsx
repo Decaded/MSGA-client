@@ -3,6 +3,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { darkTheme } from './theme';
 import Header from './components/Header';
+import ErrorNotifier from './components/ErrorNotifier';
 import Home from './pages/Home';
 import Report from './pages/Report';
 import Status from './pages/Status';
@@ -37,6 +38,7 @@ export default function App() {
                 />
               </Routes>
             </main>
+            <ErrorNotifier />
           </div>
         </Router>
       </AuthProvider>

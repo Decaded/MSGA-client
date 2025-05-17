@@ -5,7 +5,11 @@ import {
   useEffect,
   type PropsWithChildren
 } from 'react';
-import { login as apiLogin, logout as apiLogout } from '../services/api';
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  setGlobalLogout
+} from '../services/api';
 import type { User } from '../types/User';
 import type { AuthResponse } from '../types/AuthResponse';
 import type { LoginCredentials } from '../types/Credentials';
@@ -17,6 +21,8 @@ interface Value {
   logout: () => void;
   isAdmin: () => boolean;
   isModerator: () => boolean;
+  authError: string | null;
+  clearAuthError: () => void;
 }
 
 const AuthContext = createContext<Value>(null!);
@@ -24,6 +30,16 @@ const AuthContext = createContext<Value>(null!);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGlobalLogout(message => {
+      logout();
+      if (message) setAuthError(message);
+    });
+  }, []);
+
+  const clearAuthError = () => setAuthError(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -86,7 +102,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         login,
         logout,
         isAdmin,
-        isModerator
+        isModerator,
+        authError,
+        clearAuthError
       }}>
       {children}
     </AuthContext.Provider>

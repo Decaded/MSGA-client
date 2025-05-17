@@ -9,6 +9,11 @@ const API_BASE = import.meta.env.VITE_API_BASE!;
 
 const getAuthToken = () => localStorage.getItem('token');
 
+let globalLogout: ((message?: string) => void) | undefined;
+export const setGlobalLogout = (logoutFn: (message?: string) => void) => {
+  globalLogout = logoutFn;
+};
+
 const fetchWrapper = async (
   endpoint: string,
   options: RequestInit = {},
@@ -30,8 +35,19 @@ const fetchWrapper = async (
   });
 
   if (!res.ok) {
-    const message = await res.text();
-    throw new Error(message || `Request to ${endpoint} failed`);
+    const errorData = await res.json().catch(() => ({}));
+    const message = errorData.error || `Request to ${endpoint} failed`;
+
+    if (
+      [401, 403].includes(res.status) &&
+      errorData.error?.toLowerCase().includes('token')
+    ) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      globalLogout?.(message);
+    }
+
+    throw new Error(JSON.stringify(errorData));
   }
 
   return res.json();

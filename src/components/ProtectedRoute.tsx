@@ -1,16 +1,20 @@
 import type { PropsWithChildren } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 interface Props extends PropsWithChildren {
   requiredRole: string | null;
 }
 
-export default function ProtectedRoute({
-  children,
-  requiredRole = null
-}: Props) {
-  const { user, loading, isAdmin } = useAuth();
+export default function ProtectedRoute({ children, requiredRole }: Props) {
+  const { user, loading, isAdmin, authError, clearAuthError } = useAuth();
+
+  useEffect(() => {
+    if (authError) {
+      clearAuthError();
+    }
+  }, [authError, clearAuthError]);
 
   if (loading) return null;
 
