@@ -280,10 +280,32 @@ function Report() {
             onChange={e => setReason(e.target.value)}
             fullWidth
             multiline
-            rows={4}
+            minRows={4}
             margin="normal"
             variant="outlined"
             required
+            sx={{
+              '& .MuiInputBase-root': {
+                whiteSpace: 'pre-wrap',
+                alignItems: 'flex-start'
+              },
+              '& .MuiInputBase-input': {
+                lineHeight: 1.5
+              }
+            }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }
+            }}
+            helperText="Press Enter for new lines. Use Shift+Enter for soft returns."
+            FormHelperTextProps={{
+              sx: {
+                whiteSpace: 'pre-line',
+                lineHeight: 1.4
+              }
+            }}
           />
 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
