@@ -129,10 +129,12 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               whiteSpace: 'pre-line',
               p: 1,
               borderRadius: 1,
-              backgroundColor: theme => theme.palette.grey[100], 
-              display: 'inline-block',
+              backgroundColor: theme => theme.palette.grey[100],
+              display: 'block',
               width: '100%',
-              minHeight: multiline ? '80px' : 'auto'
+              minHeight: multiline ? '80px' : 'auto',
+              boxSizing: 'border-box',
+              verticalAlign: 'top'
             }}>
             {currentValue ||
               (field === 'additionalInfo' && <em>No notes added</em>)}
