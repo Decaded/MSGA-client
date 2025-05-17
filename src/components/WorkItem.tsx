@@ -66,6 +66,79 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
     setEditedWork({});
   };
 
+  const renderEditableField = (
+    field: keyof Work,
+    label: string,
+    value: string,
+    multiline = false
+  ) => {
+    const isEditing = editedWork[field] !== undefined;
+    const currentValue = editedWork[field] ?? value;
+
+    return (
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+            {label}:
+          </Typography>
+          {canEdit && (
+            <Button
+              size="small"
+              onClick={() => {
+                if (isEditing) {
+                  const newState = { ...editedWork };
+                  delete newState[field];
+                  setEditedWork(newState);
+                } else {
+                  setEditedWork(prev => ({
+                    ...prev,
+                    [field]: currentValue
+                  }));
+                }
+              }}>
+              {isEditing ? 'Cancel' : 'Edit'}
+            </Button>
+          )}
+        </Box>
+
+        {isEditing ? (
+          <TextField
+            value={currentValue}
+            onChange={e =>
+              setEditedWork(prev => ({
+                ...prev,
+                [field]: e.target.value
+              }))
+            }
+            fullWidth
+            multiline
+            minRows={multiline ? 3 : 1}
+            maxRows={multiline ? 6 : 1}
+            variant="outlined"
+            sx={{
+              '& .MuiInputBase-root': {
+                whiteSpace: 'pre-wrap',
+                alignItems: 'flex-start'
+              }
+            }}
+          />
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{
+              whiteSpace: 'pre-line',
+              p: 1,
+              borderRadius: 1,
+              backgroundColor: theme => theme.palette.grey[100]
+            }}>
+            {currentValue ||
+              (field === 'additionalInfo' && <em>No notes added</em>)}
+          </Typography>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -78,7 +151,9 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               {editedWork.title !== undefined ? (
                 <TextField
                   value={editedWork.title}
-                  onChange={e => setEditedWork(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={e =>
+                    setEditedWork(prev => ({ ...prev, title: e.target.value }))
+                  }
                   variant="standard"
                 />
               ) : (
@@ -91,8 +166,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   size="small"
                   onClick={() =>
                     setEditedWork(prev =>
-                      prev.title !== undefined 
-                        ? { ...prev, title: undefined } 
+                      prev.title !== undefined
+                        ? { ...prev, title: undefined }
                         : { ...prev, title: work.title }
                     )
                   }>
@@ -116,7 +191,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
           </Box>
 
           {work.url && (
-            <Typography variant="body2">
+            <Typography variant="body2" sx={{ mt: 1 }}>
               <Link href={work.url} target="_blank" rel="noopener noreferrer">
                 {work.url}
               </Link>
@@ -145,89 +220,36 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               Reported by: {work.reporter || 'Anonymous'} on {work.dateReported}
             </Typography>
 
-            {work.reason && (
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" paragraph sx={{ mb: 0 }}>
-                    Reason: {editedWork.reason ?? work.reason}
-                  </Typography>
-                  {canEdit && (
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        setEditedWork(prev =>
-                          prev.reason !== undefined
-                            ? { ...prev, reason: undefined }
-                            : { ...prev, reason: work.reason }
-                        )
-                      }>
-                      {editedWork.reason !== undefined ? 'Cancel' : 'Edit'}
-                    </Button>
-                  )}
-                </Box>
-                {editedWork.reason !== undefined && (
-                  <TextField
-                    value={editedWork.reason}
-                    onChange={e => setEditedWork(prev => ({ ...prev, reason: e.target.value }))}
-                    fullWidth
-                    variant="standard"
-                  />
-                )}
-              </Box>
-            )}
+            {work.reason &&
+              renderEditableField('reason', 'Reason', work.reason, true)}
 
-            {(editedWork.additionalInfo !== undefined || work.additionalInfo) && (
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography 
-                    variant="body2" 
-                    paragraph 
-                    sx={{ 
-                      mb: 0,
-                      whiteSpace: 'pre-line',
-                      wordBreak: 'break-word'
-                    }}
-                  >
-                    Additional Info: {editedWork.additionalInfo ?? work.additionalInfo}
-                  </Typography>
-                  {canEdit && (
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        setEditedWork(prev =>
-                          prev.additionalInfo !== undefined
-                            ? { ...prev, additionalInfo: undefined }
-                            : { ...prev, additionalInfo: work.additionalInfo }
-                        )
-                      }>
-                      {editedWork.additionalInfo !== undefined ? 'Cancel' : 'Edit'}
-                    </Button>
-                  )}
-                </Box>
-                {editedWork.additionalInfo !== undefined && (
-                  <TextField
-                    value={editedWork.additionalInfo}
-                    onChange={e =>
-                      setEditedWork(prev => ({ ...prev, additionalInfo: e.target.value }))
-                    }
-                    multiline
-                    minRows={3}
-                    maxRows={8}
-                    fullWidth
-                    sx={{
-                      '& textarea': {
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
-                      }
-                    }}
-                  />
-                )}
-              </Box>
+            {(work.additionalInfo || editedWork.additionalInfo !== undefined) &&
+              renderEditableField(
+                'additionalInfo',
+                'Additional Info',
+                work.additionalInfo || '',
+                true
+              )}
+
+            {!work.additionalInfo && !editedWork.additionalInfo && canEdit && (
+              <Button
+                size="small"
+                onClick={() =>
+                  setEditedWork(prev => ({
+                    ...prev,
+                    additionalInfo: ''
+                  }))
+                }
+                sx={{ mb: 2 }}>
+                Add Notes
+              </Button>
             )}
 
             {work.proofs && work.proofs.length > 0 && (
               <>
-                <Typography variant="subtitle2">Proofs:</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                  Proofs:
+                </Typography>
                 <List dense>
                   {(editedWork.proofs || work.proofs).map((proof, index) => (
                     <ListItem key={index}>
@@ -239,9 +261,14 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                           <TextField
                             value={proof}
                             onChange={e => {
-                              const newProofs = [...(editedWork.proofs || work.proofs)];
+                              const newProofs = [
+                                ...(editedWork.proofs || work.proofs)
+                              ];
                               newProofs[index] = e.target.value;
-                              setEditedWork(prev => ({ ...prev, proofs: newProofs }));
+                              setEditedWork(prev => ({
+                                ...prev,
+                                proofs: newProofs
+                              }));
                             }}
                             fullWidth
                             variant="standard"
@@ -256,9 +283,14 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                         <Button
                           size="small"
                           onClick={() => {
-                            const newProofs = [...(editedWork.proofs || work.proofs)];
+                            const newProofs = [
+                              ...(editedWork.proofs || work.proofs)
+                            ];
                             newProofs.splice(index, 1);
-                            setEditedWork(prev => ({ ...prev, proofs: newProofs }));
+                            setEditedWork(prev => ({
+                              ...prev,
+                              proofs: newProofs
+                            }));
                           }}>
                           Delete
                         </Button>
@@ -279,12 +311,14 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                     Add Proof
                   </Button>
 
-                  <Button
-                    variant="contained"
-                    onClick={handleSubmitUpdate}
-                    disabled={Object.keys(editedWork).length === 0}>
-                    Update Report
-                  </Button>
+                  {Object.keys(editedWork).length > 0 && (
+                    <Button
+                      variant="contained"
+                      onClick={handleSubmitUpdate}
+                      color="primary">
+                      Update Report
+                    </Button>
+                  )}
                 </Stack>
               </Box>
             )}
