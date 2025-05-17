@@ -124,7 +124,7 @@ function Report() {
         url: workUrl,
         reason,
         proofs: proofs.filter(p => p),
-        reporter: nickname || undefined,
+        reporter: nickname.trim() || 'Anonymous',
         additionalInfo: ''
       });
 
