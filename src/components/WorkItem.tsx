@@ -100,9 +100,13 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
             />
           </Box>
 
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {work.url}
-          </Typography>
+          {work.url && (
+            <Typography variant="body2">
+              <Link href={work.url} target="_blank" rel="noopener noreferrer">
+                {work.url}
+              </Link>
+            </Typography>
+          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
             <Button
