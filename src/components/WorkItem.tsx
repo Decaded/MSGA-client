@@ -129,6 +129,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               whiteSpace: 'pre-line',
               p: 1,
               borderRadius: 1,
+              border: '1px solid',
+              borderColor: theme => theme.palette.divider,
               backgroundColor: theme => theme.palette.grey[800],
               display: 'block',
               width: '100%',
