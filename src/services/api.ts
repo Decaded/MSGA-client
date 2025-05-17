@@ -9,8 +9,10 @@ const API_BASE = import.meta.env.VITE_API_BASE!;
 
 const getAuthToken = () => localStorage.getItem('token');
 
-let globalLogout: ((message?: string) => void) | undefined;
-export const setGlobalLogout = (logoutFn: (message?: string) => void) => {
+let globalLogout: ((silent: boolean, message?: string) => void) | undefined;
+export const setGlobalLogout = (
+  logoutFn: (silent: boolean, message?: string) => void
+) => {
   globalLogout = logoutFn;
 };
 
@@ -44,7 +46,8 @@ const fetchWrapper = async (
     ) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      globalLogout?.(message);
+      globalLogout?.(true, message);
+      throw new Error(JSON.stringify(errorData));
     }
 
     throw new Error(JSON.stringify(errorData));

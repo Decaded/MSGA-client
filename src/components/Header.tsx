@@ -50,7 +50,7 @@ export default function Header() {
         ))}
         {user ? (
           <ListItem disablePadding>
-            <ListItemButton onClick={logout}>
+            <ListItemButton component="button" onClick={() => logout()}>
               <ListItemText primary="Logout" />
             </ListItemButton>
           </ListItem>
@@ -101,7 +101,10 @@ export default function Header() {
                 </Button>
               ))}
               {user ? (
-                <Button color="secondary" variant="outlined" onClick={logout}>
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  onClick={() => logout()}>
                   Logout
                 </Button>
               ) : (

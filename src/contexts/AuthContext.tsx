@@ -18,7 +18,7 @@ interface Value {
   user: User | null;
   loading: boolean;
   login: (credentials: LoginCredentials) => Promise<User>;
-  logout: () => void;
+  logout: (silent?: boolean) => void;
   isAdmin: () => boolean;
   isModerator: () => boolean;
   authError: string | null;
@@ -33,8 +33,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    setGlobalLogout(message => {
-      logout();
+    setGlobalLogout((silent, message) => {
+      logout(silent);
       if (message) setAuthError(message);
     });
   }, []);
@@ -84,8 +84,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return user;
   };
 
-  const logout = () => {
-    apiLogout();
+  const logout = (silent = false) => {
+    if (!silent) {
+      apiLogout();
+    }
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
