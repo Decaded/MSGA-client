@@ -27,13 +27,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('token');
+
+    if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser));
+        const { exp } = JSON.parse(atob(storedToken.split('.')[1]));
+        const isExpired = exp * 1000 < Date.now();
+
+        if (isExpired) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setUser(null);
+        } else {
+          setUser(JSON.parse(storedUser));
+        }
       } catch {
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
       }
     }
+
     setLoading(false);
   }, []);
 
