@@ -78,9 +78,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               {editedWork.title !== undefined ? (
                 <TextField
                   value={editedWork.title}
-                  onChange={e =>
-                    setEditedWork(prev => ({ ...prev, title: e.target.value }))
-                  }
+                  onChange={e => setEditedWork(prev => ({ ...prev, title: e.target.value }))}
                   variant="standard"
                 />
               ) : (
@@ -93,8 +91,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   size="small"
                   onClick={() =>
                     setEditedWork(prev =>
-                      prev.title !== undefined
-                        ? { ...prev, title: undefined }
+                      prev.title !== undefined 
+                        ? { ...prev, title: undefined } 
                         : { ...prev, title: work.title }
                     )
                   }>
@@ -170,12 +168,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                 {editedWork.reason !== undefined && (
                   <TextField
                     value={editedWork.reason}
-                    onChange={e =>
-                      setEditedWork(prev => ({
-                        ...prev,
-                        reason: e.target.value
-                      }))
-                    }
+                    onChange={e => setEditedWork(prev => ({ ...prev, reason: e.target.value }))}
                     fullWidth
                     variant="standard"
                   />
@@ -183,13 +176,19 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               </Box>
             )}
 
-            {(editedWork.additionalInfo !== undefined ||
-              work.additionalInfo) && (
+            {(editedWork.additionalInfo !== undefined || work.additionalInfo) && (
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" paragraph sx={{ mb: 0 }}>
-                    Additional Info:{' '}
-                    {editedWork.additionalInfo ?? work.additionalInfo}
+                  <Typography 
+                    variant="body2" 
+                    paragraph 
+                    sx={{ 
+                      mb: 0,
+                      whiteSpace: 'pre-line',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    Additional Info: {editedWork.additionalInfo ?? work.additionalInfo}
                   </Typography>
                   {canEdit && (
                     <Button
@@ -201,9 +200,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                             : { ...prev, additionalInfo: work.additionalInfo }
                         )
                       }>
-                      {editedWork.additionalInfo !== undefined
-                        ? 'Cancel'
-                        : 'Edit'}
+                      {editedWork.additionalInfo !== undefined ? 'Cancel' : 'Edit'}
                     </Button>
                   )}
                 </Box>
@@ -211,14 +208,18 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   <TextField
                     value={editedWork.additionalInfo}
                     onChange={e =>
-                      setEditedWork(prev => ({
-                        ...prev,
-                        additionalInfo: e.target.value
-                      }))
+                      setEditedWork(prev => ({ ...prev, additionalInfo: e.target.value }))
                     }
                     multiline
-                    rows={3}
+                    minRows={3}
+                    maxRows={8}
                     fullWidth
+                    sx={{
+                      '& textarea': {
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                      }
+                    }}
                   />
                 )}
               </Box>
@@ -238,14 +239,9 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                           <TextField
                             value={proof}
                             onChange={e => {
-                              const newProofs = [
-                                ...(editedWork.proofs || work.proofs)
-                              ];
+                              const newProofs = [...(editedWork.proofs || work.proofs)];
                               newProofs[index] = e.target.value;
-                              setEditedWork(prev => ({
-                                ...prev,
-                                proofs: newProofs
-                              }));
+                              setEditedWork(prev => ({ ...prev, proofs: newProofs }));
                             }}
                             fullWidth
                             variant="standard"
@@ -260,14 +256,9 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                         <Button
                           size="small"
                           onClick={() => {
-                            const newProofs = [
-                              ...(editedWork.proofs || work.proofs)
-                            ];
+                            const newProofs = [...(editedWork.proofs || work.proofs)];
                             newProofs.splice(index, 1);
-                            setEditedWork(prev => ({
-                              ...prev,
-                              proofs: newProofs
-                            }));
+                            setEditedWork(prev => ({ ...prev, proofs: newProofs }));
                           }}>
                           Delete
                         </Button>
