@@ -81,7 +81,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
             {label}:
           </Typography>
-          {canEdit && (
+          {canEdit && expanded && (
             <Button
               size="small"
               onClick={() => {
@@ -168,7 +168,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   {work.title}
                 </Typography>
               )}
-              {canEdit && (
+              {canEdit && expanded && (
                 <Button
                   size="small"
                   onClick={() =>
