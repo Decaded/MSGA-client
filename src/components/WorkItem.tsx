@@ -152,7 +152,13 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}>
       <Card sx={{ mb: 2 }}>
-        <CardContent>
+        <CardContent
+          sx={{
+            '&:last-child': { pb: 2 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
+          }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {editedWork.title !== undefined ? (
