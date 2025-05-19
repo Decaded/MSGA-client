@@ -15,15 +15,10 @@ import {
   Divider,
   TextField,
   Stack,
-  IconButton,
-  CircularProgress,
   type ChipOwnProps
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinkIcon from '@mui/icons-material/Link';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import AdminTools from './AdminTools';
@@ -40,15 +35,6 @@ const getStatusColor = (status: Work['status']) => {
   return colors[status] || 'default';
 };
 
-const isValidUrl = (url: string) => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 interface Props {
   work: Work;
   onUpdate?: (workId: Work['id'], updates: Partial<Work>) => Promise<void>;
@@ -59,12 +45,13 @@ interface Props {
 function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editedWork, setEditedWork] = useState<Partial<Work>>({});
-  const [isUpdating, setIsUpdating] = useState(false);
   const { user, isModerator, isAdmin } = useAuth();
 
   const canEdit = user && isModerator();
   const canDelete = user && isAdmin();
   const showPublic = work.approved || (user && isModerator());
+
+  if (!showPublic) return null;
 
   const handleAddProof = () => {
     setEditedWork(prev => ({
@@ -75,15 +62,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
 
   const handleSubmitUpdate = async () => {
     if (Object.keys(editedWork).length === 0) return;
-    setIsUpdating(true);
-    try {
-      await onUpdate?.(work.id, editedWork);
-      setEditedWork({});
-    } catch (error) {
-      console.error('Update failed:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdate?.(work.id, editedWork);
+    setEditedWork({});
   };
 
   const renderEditableField = (
@@ -94,25 +74,15 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
   ) => {
     const isEditing = editedWork[field] !== undefined;
     const currentValue = editedWork[field] ?? value;
-    const isUrlField = field === 'url';
 
     return (
-      <Box
-        sx={{
-          mb: 2,
-          p: 2,
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: isEditing ? 'primary.main' : 'divider',
-          backgroundColor: isEditing ? 'rgba(25, 118, 210, 0.08)' : 'grey.900',
-          transition: 'all 0.2s ease'
-        }}>
+      <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
             {label}:
           </Typography>
           {canEdit && (
-            <IconButton
+            <Button
               size="small"
               onClick={() => {
                 if (isEditing) {
@@ -126,18 +96,13 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   }));
                 }
               }}>
-              {isEditing ? (
-                <ClearIcon fontSize="small" />
-              ) : (
-                <EditIcon fontSize="small" />
-              )}
-            </IconButton>
+              {isEditing ? 'Cancel' : 'Edit'}
+            </Button>
           )}
         </Box>
 
         {isEditing ? (
           <TextField
-            autoFocus
             value={currentValue}
             onChange={e =>
               setEditedWork(prev => ({
@@ -145,19 +110,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                 [field]: e.target.value
               }))
             }
-            error={
-              isUrlField &&
-              typeof currentValue === 'string' &&
-              !isValidUrl(currentValue)
-            }
-            helperText={
-              isUrlField &&
-              typeof currentValue === 'string' &&
-              !isValidUrl(currentValue) &&
-              'Invalid URL format'
-            }
             fullWidth
-            multiline={multiline}
+            multiline
             minRows={multiline ? 3 : 1}
             maxRows={multiline ? 6 : 1}
             variant="outlined"
@@ -192,14 +146,12 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
     );
   };
 
-  if (!showPublic) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}>
-      <Card sx={{ mb: 2, position: 'relative' }}>
+      <Card sx={{ mb: 2 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -210,8 +162,6 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                     setEditedWork(prev => ({ ...prev, title: e.target.value }))
                   }
                   variant="standard"
-                  fullWidth
-                  autoFocus
                 />
               ) : (
                 <Typography variant="h6" component="div">
@@ -219,7 +169,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                 </Typography>
               )}
               {canEdit && (
-                <IconButton
+                <Button
                   size="small"
                   onClick={() =>
                     setEditedWork(prev =>
@@ -228,12 +178,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                         : { ...prev, title: work.title }
                     )
                   }>
-                  {editedWork.title !== undefined ? (
-                    <ClearIcon fontSize="small" />
-                  ) : (
-                    <EditIcon fontSize="small" />
-                  )}
-                </IconButton>
+                  {editedWork.title !== undefined ? 'Cancel' : 'Edit'}
+                </Button>
               )}
               {!work.approved && (
                 <Chip
@@ -252,9 +198,11 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
           </Box>
 
           {work.url && (
-            <Box sx={{ mt: 1 }}>
-              {renderEditableField('url', 'URL', work.url)}
-            </Box>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              <Link href={work.url} target="_blank" rel="noopener noreferrer">
+                {work.url}
+              </Link>
+            </Typography>
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
@@ -291,43 +239,27 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
               )}
 
             {!work.additionalInfo && !editedWork.additionalInfo && canEdit && (
-              <Box
-                sx={{
-                  p: 2,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: 'action.hover' }
-                }}
+              <Button
+                size="small"
                 onClick={() =>
-                  setEditedWork(prev => ({ ...prev, additionalInfo: '' }))
-                }>
-                <Typography variant="body2" color="text.secondary">
-                  + Click to add notes
-                </Typography>
-              </Box>
+                  setEditedWork(prev => ({
+                    ...prev,
+                    additionalInfo: ''
+                  }))
+                }
+                sx={{ mb: 2 }}>
+                Add Notes
+              </Button>
             )}
 
             {work.proofs && work.proofs.length > 0 && (
               <>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 'bold', mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                   Proofs:
                 </Typography>
                 <List dense>
                   {(editedWork.proofs || work.proofs).map((proof, index) => (
-                    <ListItem
-                      key={index}
-                      sx={{
-                        backgroundColor: theme => theme.palette.grey[900],
-                        borderRadius: 1,
-                        mb: 1,
-                        '&:hover': {
-                          backgroundColor: theme => theme.palette.grey[800]
-                        }
-                      }}>
+                    <ListItem key={index}>
                       <ListItemIcon>
                         <LinkIcon fontSize="small" />
                       </ListItemIcon>
@@ -347,10 +279,6 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                             }}
                             fullWidth
                             variant="standard"
-                            error={!isValidUrl(proof)}
-                            helperText={
-                              !isValidUrl(proof) && 'Invalid URL format'
-                            }
                           />
                         ) : (
                           <Link href={proof} target="_blank" rel="noopener">
@@ -359,7 +287,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                         )}
                       </ListItemText>
                       {canEdit && (
-                        <IconButton
+                        <Button
                           size="small"
                           onClick={() => {
                             const newProofs = [
@@ -371,8 +299,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                               proofs: newProofs
                             }));
                           }}>
-                          <ClearIcon fontSize="small" />
-                        </IconButton>
+                          Delete
+                        </Button>
                       )}
                     </ListItem>
                   ))}
@@ -386,8 +314,7 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                   <Button
                     onClick={handleAddProof}
                     variant="outlined"
-                    size="small"
-                    startIcon={<CheckIcon />}>
+                    size="small">
                     Add Proof
                   </Button>
 
@@ -395,22 +322,8 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
                     <Button
                       variant="contained"
                       onClick={handleSubmitUpdate}
-                      color="primary"
-                      disabled={isUpdating}
-                      startIcon={
-                        isUpdating ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <CheckIcon />
-                        )
-                      }
-                      sx={{
-                        position: 'sticky',
-                        bottom: 16,
-                        alignSelf: 'flex-end',
-                        boxShadow: 3
-                      }}>
-                      {isUpdating ? 'Saving...' : 'Save Changes'}
+                      color="primary">
+                      Update Report
                     </Button>
                   )}
                 </Stack>
