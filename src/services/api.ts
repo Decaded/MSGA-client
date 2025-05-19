@@ -4,6 +4,7 @@ import type {
 } from '../types/Credentials';
 import type { User } from '../types/User';
 import type { Work } from '../types/Work';
+import type { Webhook } from '../types/Webhook';
 
 const API_BASE = import.meta.env.VITE_API_BASE!;
 
@@ -147,6 +148,29 @@ export const approveWork = (id: Work['id']) =>
 export const deleteWork = (id: Work['id']) =>
   fetchWrapper(
     `/works/${id}`,
+    {
+      method: 'DELETE'
+    },
+    true
+  );
+
+// ─── Webhooks ──────────────────────────────────────────
+export const getWebhooks = (): Promise<Webhook[]> =>
+  fetchWrapper('/webhooks', {}, true);
+
+export const addWebhook = (data: { url: string; name: string }) =>
+  fetchWrapper(
+    '/webhooks',
+    {
+      method: 'POST',
+      body: JSON.stringify(data)
+    },
+    true
+  );
+
+export const deleteWebhook = (id: string) =>
+  fetchWrapper(
+    `/webhooks/${id}`,
     {
       method: 'DELETE'
     },

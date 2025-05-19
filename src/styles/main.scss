@@ -270,6 +270,27 @@ button:hover {
   color: #fff;
 }
 
+.webhook-management {
+  .add-webhook-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .MuiTextField-root {
+      flex: 1;
+    }
+  }
+}
+
+.MuiTabs-root {
+  margin-bottom: 2rem;
+
+  .MuiTab-root {
+    font-weight: 500;
+    text-transform: none;
+  }
+}
+
 @media (max-width: 500px) {
   .actions {
     flex-direction: column;
