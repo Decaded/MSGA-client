@@ -11,14 +11,8 @@ import {
   Chip
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-
-interface Webhook {
-  id: string;
-  url: string;
-  name: string;
-  created: string;
-  lastUsed: string | null;
-}
+import IconButton from '@mui/material/IconButton';
+import type { Webhook } from '../types/Webhook';
 
 interface Props {
   webhook: Webhook;
@@ -28,6 +22,8 @@ interface Props {
 function WebhookItem({ webhook, onDelete }: Props) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
+
+  const [showURL, setShowURL] = useState(false);
 
   const handleClick: MouseEventHandler<HTMLButtonElement> = event => {
     setAnchorEl(event.currentTarget);
@@ -45,12 +41,18 @@ function WebhookItem({ webhook, onDelete }: Props) {
             <Typography variant="h6" component="div">
               {webhook.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              <Link href={webhook.url} target="_blank" rel="noopener">
-                {webhook.url}
-              </Link>
-            </Typography>
-            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+            {showURL ? (
+              <Typography variant="body2" color="text.secondary">
+                <Link href={webhook.url} target="_blank" rel="noopener noreferrer">
+                  {webhook.url}
+                </Link>
+              </Typography>
+            ) : (
+              <Button onClick={() => setShowURL(true)} size="small">
+                Show URL
+              </Button>
+            )}
+            <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip
                 label={`Created: ${new Date(
                   webhook.created
@@ -67,15 +69,21 @@ function WebhookItem({ webhook, onDelete }: Props) {
                   variant="outlined"
                 />
               )}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1 }}>
+                Added by: {webhook.createdBy}
+              </Typography>
             </Box>
           </Box>
 
-          <Button
+          <IconButton
             aria-controls={open ? 'webhook-menu' : undefined}
             aria-haspopup="true"
             onClick={handleClick}>
             <MoreVertIcon />
-          </Button>
+          </IconButton>
           <Menu
             id="webhook-menu"
             anchorEl={anchorEl}

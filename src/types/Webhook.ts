@@ -3,5 +3,6 @@ export interface Webhook {
   url: string;
   name: string;
   created: string;
+  createdBy: string;
   lastUsed: string | null;
 }
