@@ -7,13 +7,17 @@ import {
   Box,
   CircularProgress,
   Button,
-  TextField
+  TextField,
+  MenuItem,
+  Stack,
+  IconButton
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import WorkItem from '../components/WorkItem';
 import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Work } from '../types/Work';
+import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
 const statusFilters = [
   { value: 'all', label: 'All' },
@@ -165,35 +169,13 @@ function Status() {
     );
   }
 
-  const PaginationControls = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-      <Button
-        variant="outlined"
-        disabled={currentPage === 1}
-        onClick={() => setCurrentPage(prev => prev - 1)}
-        sx={{ mx: 1 }}>
-        Prev
-      </Button>
-      <Typography variant="body1" sx={{ alignSelf: 'center', mx: 2 }}>
-        Page {currentPage} of {totalPages}
-      </Typography>
-      <Button
-        variant="outlined"
-        disabled={currentPage === totalPages}
-        onClick={() => setCurrentPage(prev => prev + 1)}
-        sx={{ mx: 1 }}>
-        Next
-      </Button>
-    </Box>
-  );
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>
         Report Status
       </Typography>
 
-      <Box sx={{ mb: 3 }}>
+      <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 3 }}>
         <TextField
           label="Search by title or URL"
           value={searchInput}
@@ -201,43 +183,17 @@ function Status() {
           fullWidth
           size="small"
         />
-      </Box>
 
-      <Box sx={{ mb: 3 }}>
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={(_, newFilter) => {
-            if (newFilter !== null) setFilter(newFilter);
-          }}
-          aria-label="work status filter"
-          sx={{ flexWrap: 'wrap', gap: 1 }}>
-          {statusFilters.map(({ value, label }) => {
-            if (value === 'pending_review' && !user) return null;
-            return (
-              <ToggleButton key={value} value={value}>
-                {label}
-              </ToggleButton>
-            );
-          })}
-        </ToggleButtonGroup>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <TextField
           select
           label="Sort By"
           value={sortBy}
           onChange={e => setSortBy(e.target.value as typeof sortBy)}
-          slotProps={{
-            select: {
-              native: true
-            }
-          }}
-          size="small">
-          <option value="id">ID</option>
-          <option value="title">Title</option>
-          <option value="dateReported">Date Reported</option>
+          size="small"
+          sx={{ minWidth: 140 }}>
+          <MenuItem value="id">ID</MenuItem>
+          <MenuItem value="title">Title</MenuItem>
+          <MenuItem value="dateReported">Date Reported</MenuItem>
         </TextField>
 
         <Button
@@ -247,9 +203,48 @@ function Status() {
           }>
           {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
         </Button>
+      </Stack>
+
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <ToggleButtonGroup
+          value={filter}
+          exclusive
+          onChange={(_, newFilter) => {
+            if (newFilter !== null) setFilter(newFilter);
+          }}
+          aria-label="work status filter">
+          {statusFilters.map(({ value, label }) => {
+            if (value === 'pending_review' && !user) return null;
+            return (
+              <ToggleButton key={value} value={value} size="small">
+                {label}
+              </ToggleButton>
+            );
+          })}
+        </ToggleButtonGroup>
       </Box>
 
-      <PaginationControls />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          my: 2
+        }}>
+        <IconButton
+          onClick={() => setCurrentPage(prev => prev - 1)}
+          disabled={currentPage === 1}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="body2">
+          Page {currentPage} of {totalPages}
+        </Typography>
+        <IconButton
+          onClick={() => setCurrentPage(prev => prev + 1)}
+          disabled={currentPage === totalPages}>
+          <ArrowForward />
+        </IconButton>
+      </Box>
 
       {paginatedWorks.length === 0 ? (
         <Typography>No works found matching your criteria.</Typography>
@@ -275,7 +270,17 @@ function Status() {
         ))
       )}
 
-      <PaginationControls />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mt: 4
+        }}>
+        <Typography variant="caption" color="text.secondary">
+          Showing {paginatedWorks.length} of {filteredWorks.length} results
+        </Typography>
+      </Box>
     </Container>
   );
 }
