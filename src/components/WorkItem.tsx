@@ -205,7 +205,26 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
             </Typography>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mt: 1
+            }}>
+            <Box>
+              {work.status === 'pending_review' && user && onApprove && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => onApprove(work.id)}
+                  size="small"
+                  sx={{ mr: 1 }}>
+                  Approve
+                </Button>
+              )}
+            </Box>
+
             <Button
               size="small"
               endIcon={
