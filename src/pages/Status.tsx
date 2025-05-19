@@ -262,15 +262,6 @@ function Status() {
               onDelete={isAdmin() ? handleDeleteWork : undefined}
               onApprove={user ? handleApproveWork : undefined}
             />
-            {work.status === 'pending_review' && (user || isAdmin()) && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleApproveWork(work.id)}
-                sx={{ mt: 1 }}>
-                Approve
-              </Button>
-            )}
           </Box>
         ))
       )}
