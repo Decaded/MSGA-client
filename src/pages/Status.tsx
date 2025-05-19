@@ -165,27 +165,78 @@ function Status() {
     );
   }
 
-  const PaginationControls = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-      <Button
-        variant="outlined"
-        disabled={currentPage === 1}
-        onClick={() => setCurrentPage(prev => prev - 1)}
-        sx={{ mx: 1 }}>
-        Prev
-      </Button>
-      <Typography variant="body1" sx={{ alignSelf: 'center', mx: 2 }}>
-        Page {currentPage} of {totalPages}
-      </Typography>
-      <Button
-        variant="outlined"
-        disabled={currentPage === totalPages}
-        onClick={() => setCurrentPage(prev => prev + 1)}
-        sx={{ mx: 1 }}>
-        Next
-      </Button>
-    </Box>
-  );
+  const PaginationControls = () => {
+    const [pageInput, setPageInput] = useState(currentPage.toString());
+
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1,
+          justifyContent: 'center',
+          my: 2
+        }}>
+        <Button
+          variant="outlined"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(1)}
+          sx={{ mx: 0.5 }}>
+          First
+        </Button>
+        <Button
+          variant="outlined"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(prev => prev - 1)}
+          sx={{ mx: 0.5 }}>
+          Prev
+        </Button>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
+          <TextField
+            value={pageInput}
+            onChange={e => {
+              const value = e.target.value;
+              setPageInput(value);
+              // Update currentPage on valid input
+              if (/^\d+$/.test(value)) {
+                const numValue = parseInt(value);
+                if (numValue >= 1 && numValue <= totalPages) {
+                  setCurrentPage(numValue);
+                }
+              }
+            }}
+            type="number"
+            inputProps={{
+              min: 1,
+              max: totalPages,
+              style: { textAlign: 'center', width: 60 }
+            }}
+            size="small"
+            sx={{ mx: 1 }}
+          />
+          <Typography variant="body1" sx={{ alignSelf: 'center', mx: 1 }}>
+            of {totalPages}
+          </Typography>
+        </Box>
+
+        <Button
+          variant="outlined"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(prev => prev + 1)}
+          sx={{ mx: 0.5 }}>
+          Next
+        </Button>
+        <Button
+          variant="outlined"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(totalPages)}
+          sx={{ mx: 0.5 }}>
+          Last
+        </Button>
+      </Box>
+    );
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
