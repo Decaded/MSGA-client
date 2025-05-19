@@ -19,11 +19,10 @@ interface Props {
   work: Work;
   onStatusChange?: (
     workId: Work['id'],
-    updates: Partial<Work>
+    status: Work['status']
   ) => Promise<void>;
   onDelete?: (workId: Work['id']) => Promise<void>;
   canDelete: boolean;
-  onApprove?: (workId: Work['id'], selectedStatus: Work['status']) => void;
 }
 
 function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
@@ -35,7 +34,7 @@ function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
     if (selectedStatus) {
       setIsUpdating(true);
       try {
-        await onStatusChange?.(work.id, { status: selectedStatus });
+        await onStatusChange?.(work.id, selectedStatus);
         setSelectedStatus('');
       } finally {
         setIsUpdating(false);

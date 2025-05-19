@@ -11,7 +11,13 @@ import {
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import WorkItem from '../components/WorkItem';
-import { getWorks, updateWork, deleteWork, approveWork } from '../services/api';
+import {
+  getWorks,
+  updateWork,
+  deleteWork,
+  approveWork,
+  updateWorkStatus
+} from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Work } from '../types/Work';
 
@@ -60,6 +66,28 @@ function Status() {
         return next;
       });
     }, 300);
+  };
+
+  const handleUpdateWorkStatus = async (
+    id: Work['id'],
+    status: Work['status']
+  ) => {
+    setWorks(prevWorks =>
+      prevWorks.map(work =>
+        work.id === id ? { ...work, status, approved: true } : work
+      )
+    );
+    try {
+      await updateWorkStatus(id, status);
+    } catch (error) {
+      console.error('Error updating work status:', error);
+      // Rollback on error
+      setWorks(prevWorks =>
+        prevWorks.map(work =>
+          work.id === id ? { ...work, status: work.status } : work
+        )
+      );
+    }
   };
 
   useEffect(() => {
@@ -310,6 +338,7 @@ function Status() {
             <WorkItem
               work={work}
               onUpdate={user ? handleUpdateWork : undefined}
+              onStatusUpdate={user ? handleUpdateWorkStatus : undefined}
               onDelete={isAdmin() ? handleDeleteWork : undefined}
               onApprove={user ? handleApproveWork : undefined}
             />

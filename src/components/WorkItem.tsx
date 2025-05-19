@@ -38,11 +38,21 @@ const getStatusColor = (status: Work['status']) => {
 interface Props {
   work: Work;
   onUpdate?: (workId: Work['id'], updates: Partial<Work>) => Promise<void>;
+  onStatusUpdate?: (
+    workId: Work['id'],
+    status: Work['status']
+  ) => Promise<void>;
   onDelete?: (workId: Work['id']) => Promise<void>;
   onApprove?: (workId: Work['id']) => void;
 }
 
-function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
+function WorkItem({
+  work,
+  onUpdate,
+  onStatusUpdate,
+  onDelete,
+  onApprove
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editedWork, setEditedWork] = useState<Partial<Work>>({});
   const { user, isModerator, isAdmin } = useAuth();
@@ -358,10 +368,9 @@ function WorkItem({ work, onUpdate, onDelete, onApprove }: Props) {
             {isModerator() && (
               <AdminTools
                 work={work}
-                onStatusChange={onUpdate}
+                onStatusChange={onStatusUpdate}
                 canDelete={!!canDelete}
                 onDelete={onDelete}
-                onApprove={onApprove}
               />
             )}
           </Collapse>
