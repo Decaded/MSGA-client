@@ -35,7 +35,7 @@ function Status() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'id' | 'title' | 'dateReported'>('id');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const { user, isAdmin, isModerator } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
