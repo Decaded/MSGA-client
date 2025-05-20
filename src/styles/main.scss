@@ -303,7 +303,13 @@ button:hover {
     width: 100%;
     height: 100%;
     background: linear-gradient(45deg, #0a192f66 0%, #bf3b3b33 100%),
-      url('https://example.com/tanya-pattern.png');
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        #bf3b3b15 10px,
+        #bf3b3b15 20px
+      );
     z-index: -1;
     opacity: 0.1;
   }
@@ -334,25 +340,54 @@ button:hover {
   }
 
   .scanline-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(191, 59, 59, 0.1) 51%,
+      transparent 51%
+    );
+    background-size: 100% 4px;
+    animation: scanline 4s linear infinite;
+    z-index: 0;
+
     &::before {
       content: '';
       position: absolute;
       height: 100%;
       width: 100%;
-      background: rgba(16, 22, 36, 0.1);
+      background: linear-gradient(45deg, #0a192f66 0%, #bf3b3b33 100%),
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          #bf3b3b15 2px,
+          #bf3b3b15 4px
+        ),
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 3px,
+          #d4af3722 3px,
+          #d4af3722 6px
+        );
       animation: flicker 0.15s infinite;
     }
-  }
 
-  @keyframes flicker {
-    0% {
-      opacity: 0.9;
-    }
-    50% {
-      opacity: 0.8;
-    }
-    100% {
-      opacity: 1;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(16, 22, 36, 0.05);
+      pointer-events: none;
     }
   }
 }
@@ -366,6 +401,18 @@ button:hover {
   }
   100% {
     transform: translateY(100%);
+  }
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
