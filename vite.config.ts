@@ -8,10 +8,5 @@ export default defineConfig({
     modules: {
       localsConvention: 'camelCaseOnly'
     }
-  },
-  server: {
-    headers: {
-      'Content-Type': 'application/javascript'
-    }
   }
 });
