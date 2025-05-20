@@ -14,7 +14,6 @@ import {
   TextField,
   Button
 } from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {
   getUsers,
   updateUser,
@@ -48,75 +47,6 @@ function TabPanel({ children, value, index, ...other }: Props) {
     </div>
   );
 }
-const tanyaTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#bf3b3b', // Military red
-      contrastText: '#fff'
-    },
-    secondary: {
-      main: '#d4af37' // Gold accents
-    },
-    background: {
-      default: '#0a192f', // Navy blue
-      paper: '#172a45'
-    },
-    text: {
-      primary: '#e1e1e1',
-      secondary: '#8c9db5'
-    }
-  },
-  typography: {
-    fontFamily: '"Orbitron", "Inter", sans-serif',
-    h4: {
-      textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-    }
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '4px',
-          border: '1px solid #d4af37',
-          fontWeight: 'bold',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            transform: 'translateY(-1px)',
-            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)'
-          }
-        }
-      }
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          background: 'linear-gradient(145deg, #172a45 0%, #0a192f 100%)',
-          border: '1px solid #d4af3755',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-        }
-      }
-    },
-    MuiTabs: {
-      styleOverrides: {
-        indicator: {
-          backgroundColor: '#d4af37',
-          height: '3px'
-        }
-      }
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          fontSize: '1.1rem',
-          '&.Mui-selected': {
-            color: '#d4af37 !important'
-          }
-        }
-      }
-    }
-  }
-});
 
 function Admin() {
   const [tabValue, setTabValue] = useState(0);
@@ -219,95 +149,71 @@ function Admin() {
   }
 
   return (
-    <ThemeProvider theme={tanyaTheme}>
-      <Container maxWidth="lg" className="admin-theme">
-        <div className="scanline-overlay" />
-        <Box className="admin-header">
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{
-              fontFamily: '"Orbitron", sans-serif',
-              letterSpacing: '2px',
-              position: 'relative',
-              '&::before': {
-                content: '"»"',
-                color: '#d4af37',
-                marginRight: '1rem'
-              },
-              '&::after': {
-                content: '"«"',
-                color: '#d4af37',
-                marginLeft: '1rem'
-              }
-            }}>
-            Imperial Admin Dashboard
-          </Typography>
+    <Container maxWidth="lg">
+      <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+        Admin Dashboard
+      </Typography>
+
+      <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
+        <Tab label="User Management" />
+        <Tab label="Webhook Management" />
+      </Tabs>
+
+      <TabPanel value={tabValue} index={0}>
+        {users.length === 0 ? (
+          <Typography>No users found.</Typography>
+        ) : (
+          users.map(user => (
+            <UserItem
+              key={user.id}
+              user={user}
+              onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
+            />
+          ))
+        )}
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+          <TextField
+            label="Webhook Name"
+            value={webhookForm.name}
+            onChange={e =>
+              setWebhookForm({ ...webhookForm, name: e.target.value })
+            }
+            size="small"
+          />
+          <TextField
+            label="Webhook URL"
+            value={webhookForm.url}
+            onChange={e =>
+              setWebhookForm({ ...webhookForm, url: e.target.value })
+            }
+            size="small"
+            sx={{ flexGrow: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleAddWebhook}
+            disabled={!webhookForm.name || !webhookForm.url}>
+            Add Webhook
+          </Button>
         </Box>
 
-        <Tabs
-          value={tabValue}
-          onChange={(_, newValue) => setTabValue(newValue)}>
-          <Tab label="User Management" />
-          <Tab label="Webhook Management" />
-        </Tabs>
-
-        <TabPanel value={tabValue} index={0}>
-          {users.length === 0 ? (
-            <Typography>No users found.</Typography>
-          ) : (
-            users.map(user => (
-              <UserItem
-                key={user.id}
-                user={user}
-                onUpdateUser={handleUpdateUser}
-                onDeleteUser={handleDeleteUser}
-              />
-            ))
-          )}
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={1}>
-          <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-            <TextField
-              label="Webhook Name"
-              value={webhookForm.name}
-              onChange={e =>
-                setWebhookForm({ ...webhookForm, name: e.target.value })
-              }
-              size="small"
+        {webhooks.length === 0 ? (
+          <Typography>No webhooks configured</Typography>
+        ) : (
+          webhooks.map(webhook => (
+            <WebhookItem
+              key={webhook.id}
+              webhook={webhook}
+              onDelete={handleDeleteWebhook}
             />
-            <TextField
-              label="Webhook URL"
-              value={webhookForm.url}
-              onChange={e =>
-                setWebhookForm({ ...webhookForm, url: e.target.value })
-              }
-              size="small"
-              sx={{ flexGrow: 1 }}
-            />
-            <Button
-              variant="contained"
-              onClick={handleAddWebhook}
-              disabled={!webhookForm.name || !webhookForm.url}>
-              Add Webhook
-            </Button>
-          </Box>
-
-          {webhooks.length === 0 ? (
-            <Typography>No webhooks configured</Typography>
-          ) : (
-            webhooks.map(webhook => (
-              <WebhookItem
-                key={webhook.id}
-                webhook={webhook}
-                onDelete={handleDeleteWebhook}
-              />
-            ))
-          )}
-        </TabPanel>
-      </Container>
-    </ThemeProvider>
+          ))
+        )}
+      </TabPanel>
+    </Container>
   );
 }
 
