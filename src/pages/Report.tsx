@@ -16,18 +16,22 @@ import {
   DialogContentText,
   DialogActions,
   Alert,
-  Collapse
+  Collapse,
+  ToggleButtonGroup,
+  ToggleButton,
+  FormHelperText
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import { addWork } from '../services/api';
+import { addWork, addProfile } from '../services/api';
 
 function Report() {
+  const [reportType, setReportType] = useState<'work' | 'profile'>('work');
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [openError, setOpenError] = useState(false);
-  const [workUrl, setWorkUrl] = useState('');
+  const [targetUrl, setTargetUrl] = useState('');
   const [reason, setReason] = useState('');
   const [proofs, setProofs] = useState(['']);
   const [nickname, setNickname] = useState('');
@@ -37,7 +41,7 @@ function Report() {
 
   const isValidUrl = (url: string) => {
     try {
-      const urlPattern =
+      const urlPattern = 
         /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}/i;
       if (!urlPattern.test(url)) return false;
 
@@ -82,15 +86,18 @@ function Report() {
     setOpenError(false);
 
     // Validation
-    if (!workUrl) {
-      setError('Work URL is required');
+    if (!targetUrl) {
+      setError(`${reportType === 'work' ? 'Work' : 'Profile'} URL is required`);
       setOpenError(true);
       return;
     }
 
-    const scribbleHubPattern = /^https:\/\/www\.scribblehub\.com\/series\/\d+/;
-    if (!scribbleHubPattern.test(workUrl)) {
-      setError('Please enter a valid ScribbleHub work URL');
+    const urlPattern = reportType === 'work' 
+      ? /^https:\/\/www\.scribblehub\.com\/series\/\d+/
+      : /^https:\/\/www\.scribblehub\.com\/profile\/\d+\/[a-zA-Z0-9-_]+\/?$/;
+
+    if (!urlPattern.test(targetUrl)) {
+      setError(`Please enter a valid ScribbleHub ${reportType} URL`);
       setOpenError(true);
       return;
     }
@@ -104,9 +111,7 @@ function Report() {
 
     for (const proof of validProofs) {
       if (!isValidUrl(proof)) {
-        setError(
-          `"${proof}" is not a valid URL. Please include http:// or https://`
-        );
+        setError(`"${proof}" is not a valid URL. Please include http:// or https://`);
         setOpenError(true);
         return;
       }
@@ -115,23 +120,27 @@ function Report() {
     setLoading(true);
 
     try {
-      const workTitle =
-        extractTitleFromUrl(workUrl) ||
-        `Reported Work ${new Date().toISOString()}`;
+      const title = extractTitleFromUrl(targetUrl) || 
+        `Reported ${reportType === 'work' ? 'Work' : 'Profile'} ${new Date().toISOString()}`;
 
-      await addWork({
-        title: workTitle,
-        url: workUrl,
+      const reportData = {
+        title,
+        url: targetUrl,
         reason,
-        proofs: proofs.filter(p => p),
+        proofs: validProofs,
         reporter: nickname || 'Anonymous',
         additionalInfo: ''
-      });
+      };
+
+      if (reportType === 'work') {
+        await addWork(reportData);
+      } else {
+        await addProfile(reportData);
+      }
 
       setSubmissionSuccess(true);
     } catch (err) {
-      let errorMessage = 'Failed to submit report';
-
+      let errorMessage = `Failed to submit ${reportType} report`;
       if (err instanceof Error) {
         try {
           const errorData = JSON.parse(err.message);
@@ -140,7 +149,6 @@ function Report() {
           errorMessage = err.message;
         }
       }
-
       setError(errorMessage);
       setOpenError(true);
     } finally {
@@ -164,8 +172,13 @@ function Report() {
 
   const extractTitleFromUrl = (url: string) => {
     try {
-      const match = url.match(/series\/\d+\/([^/]+)/);
-      return match ? decodeURIComponent(match[1].replace(/-/g, ' ')) : null;
+      if (reportType === 'work') {
+        const match = url.match(/series\/\d+\/([^/]+)/);
+        return match ? decodeURIComponent(match[1].replace(/-/g, ' ')) : null;
+      } else {
+        const match = url.match(/profile\/\d+\/([^/]+)/);
+        return match ? decodeURIComponent(match[1].replace(/-/g, ' ')) : null;
+      }
     } catch {
       return null;
     }
@@ -187,7 +200,7 @@ function Report() {
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Report a Work
+          Report Content
         </Typography>
 
         <Collapse in={openError}>
@@ -208,11 +221,35 @@ function Report() {
         </Collapse>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Box sx={{ mb: 3 }}>
+            <ToggleButtonGroup
+              value={reportType}
+              exclusive
+              onChange={(_, newType) => newType && setReportType(newType)}
+              aria-label="report type"
+              fullWidth>
+              <ToggleButton value="work">Report Work</ToggleButton>
+              <ToggleButton value="profile">Report Profile</ToggleButton>
+            </ToggleButtonGroup>
+            
+            <FormHelperText sx={{ mt: 1 }}>
+              {reportType === 'work' ? (
+                'Use this for reporting novels/series that appear to be unauthorized translations'
+              ) : (
+                'Use this for reporting user profiles that are uploading or promoting stolen content'
+              )}
+            </FormHelperText>
+          </Box>
+
           <TextField
-            label="Work URL"
-            value={workUrl}
-            onChange={e => setWorkUrl(e.target.value)}
-            placeholder="https://www.scribblehub.com/series/..."
+            label={reportType === 'work' ? "Work URL" : "Profile URL"}
+            value={targetUrl}
+            onChange={e => setTargetUrl(e.target.value)}
+            placeholder={
+              reportType === 'work' 
+                ? "https://www.scribblehub.com/series/..." 
+                : "https://www.scribblehub.com/profile/123/username/"
+            }
             fullWidth
             required
             margin="normal"
@@ -318,6 +355,7 @@ function Report() {
             </Button>
           </Box>
         </Box>
+
         <Dialog
           open={submissionSuccess}
           onClose={() => {
