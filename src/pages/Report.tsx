@@ -41,7 +41,7 @@ function Report() {
 
   const isValidUrl = (url: string) => {
     try {
-      const urlPattern = 
+      const urlPattern =
         /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}/i;
       if (!urlPattern.test(url)) return false;
 
@@ -92,9 +92,10 @@ function Report() {
       return;
     }
 
-    const urlPattern = reportType === 'work' 
-      ? /^https:\/\/www\.scribblehub\.com\/series\/\d+/
-      : /^https:\/\/www\.scribblehub\.com\/profile\/\d+\/[a-zA-Z0-9-_]+\/?$/;
+    const urlPattern =
+      reportType === 'work'
+        ? /^https:\/\/www\.scribblehub\.com\/series\/\d+/
+        : /^https:\/\/www\.scribblehub\.com\/profile\/\d+\/[a-zA-Z0-9-_]+\/?$/;
 
     if (!urlPattern.test(targetUrl)) {
       setError(`Please enter a valid ScribbleHub ${reportType} URL`);
@@ -103,15 +104,12 @@ function Report() {
     }
 
     const validProofs = proofs.filter(p => p);
-    if (validProofs.length === 0) {
-      setError('At least one proof URL is required');
-      setOpenError(true);
-      return;
-    }
 
     for (const proof of validProofs) {
       if (!isValidUrl(proof)) {
-        setError(`"${proof}" is not a valid URL. Please include http:// or https://`);
+        setError(
+          `"${proof}" is not a valid URL. Please include http:// or https://`
+        );
         setOpenError(true);
         return;
       }
@@ -120,8 +118,11 @@ function Report() {
     setLoading(true);
 
     try {
-      const title = extractTitleFromUrl(targetUrl) || 
-        `Reported ${reportType === 'work' ? 'Work' : 'Profile'} ${new Date().toISOString()}`;
+      const title =
+        extractTitleFromUrl(targetUrl) ||
+        `Reported ${
+          reportType === 'work' ? 'Work' : 'Profile'
+        } ${new Date().toISOString()}`;
 
       const reportData = {
         title,
@@ -231,24 +232,22 @@ function Report() {
               <ToggleButton value="work">Report Work</ToggleButton>
               <ToggleButton value="profile">Report Profile</ToggleButton>
             </ToggleButtonGroup>
-            
+
             <FormHelperText sx={{ mt: 1 }}>
-              {reportType === 'work' ? (
-                'Use this for reporting novels/series that appear to be unauthorized translations'
-              ) : (
-                'Use this for reporting user profiles that are uploading or promoting stolen content'
-              )}
+              {reportType === 'work'
+                ? 'Use this for reporting novels/series that appear to be unauthorized translations'
+                : 'Use this for reporting user profiles that are uploading or promoting stolen content'}
             </FormHelperText>
           </Box>
 
           <TextField
-            label={reportType === 'work' ? "Work URL" : "Profile URL"}
+            label={reportType === 'work' ? 'Work URL' : 'Profile URL'}
             value={targetUrl}
             onChange={e => setTargetUrl(e.target.value)}
             placeholder={
-              reportType === 'work' 
-                ? "https://www.scribblehub.com/series/..." 
-                : "https://www.scribblehub.com/profile/123/username/"
+              reportType === 'work'
+                ? 'https://www.scribblehub.com/series/...'
+                : 'https://www.scribblehub.com/profile/123/username/'
             }
             fullWidth
             required
@@ -277,7 +276,6 @@ function Report() {
                   }}
                   placeholder="https://example.com/proof"
                   fullWidth
-                  required={index === 0}
                   variant="outlined"
                   error={!!proof && !isValidUrl(proof)}
                   helperText={
