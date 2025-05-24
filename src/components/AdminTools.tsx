@@ -14,27 +14,55 @@ import {
   DialogTitle
 } from '@mui/material';
 import type { Work } from '../types/Work';
+import type { Profile } from '../types/Profile';
+
+type ItemType = 'work' | 'profile';
+type Item = Work | Profile;
 
 interface Props {
-  work: Work;
+  item: Item;
+  type: ItemType;
   onStatusChange?: (
-    workId: Work['id'],
-    status: Work['status']
+    id: number,
+    status: Work['status'] | Profile['status']
   ) => Promise<void>;
-  onDelete?: (workId: Work['id']) => Promise<void>;
+  onDelete?: (id: number) => Promise<void>;
   canDelete: boolean;
 }
 
-function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
-  const [selectedStatus, setSelectedStatus] = useState<Work['status'] | ''>('');
+function AdminTools({
+  item,
+  type,
+  onStatusChange,
+  onDelete,
+  canDelete
+}: Props) {
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+  const statusOptions =
+    type === 'work'
+      ? [
+          { value: 'in_progress', label: 'In Progress' },
+          { value: 'confirmed', label: 'Confirmed' },
+          { value: 'taken_down', label: 'Taken Down' },
+          { value: 'original', label: 'Original (Not translation)' }
+        ]
+      : [
+          { value: 'in_progress', label: 'In Progress' },
+          { value: 'confirmed_violator', label: 'Confirmed violator' },
+          { value: 'false_positive', label: 'Not confirmed (Original author)' }
+        ];
 
   const handleStatusChange = async () => {
     if (selectedStatus) {
       setIsUpdating(true);
       try {
-        await onStatusChange?.(work.id, selectedStatus);
+        await onStatusChange?.(
+          item.id,
+          selectedStatus as Work['status'] | Profile['status']
+        );
         setSelectedStatus('');
       } finally {
         setIsUpdating(false);
@@ -46,7 +74,7 @@ function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
     setDeleteConfirmOpen(false);
     setIsUpdating(true);
     try {
-      await onDelete?.(work.id);
+      await onDelete?.(item.id);
     } finally {
       setIsUpdating(false);
     }
@@ -55,7 +83,7 @@ function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="subtitle2" gutterBottom>
-        Work Management:
+        {type === 'work' ? 'Work' : 'Profile'} Management:
       </Typography>
       <Box
         sx={{
@@ -70,10 +98,11 @@ function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
             value={selectedStatus}
             onChange={e => setSelectedStatus(e.target.value)}
             label="Status">
-            <MenuItem value="in_progress">In Progress</MenuItem>
-            <MenuItem value="confirmed">Confirmed</MenuItem>
-            <MenuItem value="taken_down">Taken Down</MenuItem>
-            <MenuItem value="original">Original (False Positive)</MenuItem>
+            {statusOptions.map(option => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
@@ -102,8 +131,8 @@ function AdminTools({ work, onStatusChange, onDelete, canDelete }: Props) {
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogContent>
                 <DialogContentText>
-                  Are you sure you want to permanently delete this entry? This
-                  action cannot be undone.
+                  Are you sure you want to permanently delete this {type} entry?
+                  This action cannot be undone.
                 </DialogContentText>
               </DialogContent>
               <DialogActions>
