@@ -10,6 +10,9 @@ export interface Work {
   approved: boolean;
   proofs: string[];
   additionalInfo: string;
+
+  lastUpdated?: string;
+  updatedBy?: string;
 }
 
 export type WorkStatus =
