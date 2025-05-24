@@ -11,27 +11,40 @@ import {
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import WorkItem from '../components/WorkItem';
+import ProfileItem from '../components/ProfileItem';
 import {
   getWorks,
   updateWork,
   deleteWork,
   approveWork,
-  updateWorkStatus
+  updateWorkStatus,
+  getProfiles,
+  updateProfile,
+  deleteProfile,
+  approveProfile,
+  updateProfileStatus
 } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Work } from '../types/Work';
+import type { Profile } from '../types/Profile';
+
+type ReportType = 'work' | 'profile';
 
 const statusFilters = [
   { value: 'all', label: 'All' },
   { value: 'pending_review', label: 'Pending Review' },
   { value: 'in_progress', label: 'In Progress' },
+  { value: 'confirmed_violator', label: 'Confirmed violator' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'taken_down', label: 'Taken Down' },
-  { value: 'original', label: 'Original' }
+  { value: 'original', label: 'Original' },
+  { value: 'false_positive', label: 'Original author' }
 ];
 
 function Status() {
+  const [reportType, setReportType] = useState<ReportType>('work');
   const [works, setWorks] = useState<Work[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'id' | 'title' | 'dateReported'>('id');
@@ -90,37 +103,64 @@ function Status() {
     }
   };
 
+  const handleUpdateProfileStatus = async (
+    id: Profile['id'],
+    status: Profile['status']
+  ) => {
+    setProfiles(prevProfiles =>
+      prevProfiles.map(profile =>
+        profile.id === id ? { ...profile, status, approved: true } : profile
+      )
+    );
+    try {
+      await updateProfileStatus(id, status);
+    } catch (error) {
+      console.error('Error updating profile status:', error);
+      // Rollback on error
+      setProfiles(prevProfiles =>
+        prevProfiles.map(profile =>
+          profile.id === id ? { ...profile, status: profile.status } : profile
+        )
+      );
+    }
+  };
+
   useEffect(() => {
-    const fetchWorks = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getWorks();
-        setWorks(data);
+        const [worksData, profilesData] = await Promise.all([
+          getWorks(),
+          getProfiles()
+        ]);
+        setWorks(worksData);
+        setProfiles(profilesData);
       } catch (error) {
-        console.error('Error fetching works:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchWorks();
+    fetchData();
   }, []);
 
-  // Reset page when filter or search term changes
+  // Reset page when filter, search term, or report type changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, rawSearch]);
+  }, [filter, rawSearch, reportType]);
 
-  const filteredWorks = useMemo(() => {
-    if (!Array.isArray(works)) return [];
+  const filteredItems = useMemo(() => {
+    const items = reportType === 'work' ? works : profiles;
+    if (!Array.isArray(items)) return [];
 
-    const filtered = works.filter(work => {
+    const filtered = items.filter(item => {
       const canView =
-        work.approved ||
-        (user && (user.username === work.reporter || isModerator()));
+        item.approved ||
+        (user && (user.username === item.reporter || isModerator()));
 
-      const matchesFilter = filter === 'all' || work.status === filter;
+      const matchesFilter = filter === 'all' || item.status === filter;
       const matchesSearch =
-        work.title.toLowerCase().includes(rawSearch.toLowerCase()) ||
-        work.url?.toLowerCase().includes(rawSearch.toLowerCase());
+        item.title.toLowerCase().includes(rawSearch.toLowerCase()) ||
+        item.url?.toLowerCase().includes(rawSearch.toLowerCase());
 
       return canView && matchesFilter && matchesSearch;
     });
@@ -142,17 +182,27 @@ function Status() {
     });
 
     return sorted;
-  }, [works, user, isModerator, filter, rawSearch, sortBy, sortOrder]);
+  }, [
+    works,
+    profiles,
+    user,
+    isModerator,
+    filter,
+    rawSearch,
+    sortBy,
+    sortOrder,
+    reportType
+  ]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredWorks.length / itemsPerPage)
+    Math.ceil(filteredItems.length / itemsPerPage)
   );
 
-  const paginatedWorks = useMemo(() => {
+  const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return filteredWorks.slice(start, start + itemsPerPage);
-  }, [filteredWorks, currentPage]);
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage]);
 
   const handleUpdateWork = async (id: Work['id'], updates: Partial<Work>) => {
     try {
@@ -163,12 +213,33 @@ function Status() {
     }
   };
 
+  const handleUpdateProfile = async (
+    id: Profile['id'],
+    updates: Partial<Profile>
+  ) => {
+    try {
+      const updatedProfile = await updateProfile(id, updates);
+      setProfiles(profiles.map(p => (p.id === id ? updatedProfile : p)));
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
   const handleDeleteWork = async (id: Work['id']) => {
     try {
       await deleteWork(id);
       setWorks(works.filter(work => work.id !== id));
     } catch (error) {
       console.error('Error deleting work:', error);
+    }
+  };
+
+  const handleDeleteProfile = async (id: Profile['id']) => {
+    try {
+      await deleteProfile(id);
+      setProfiles(profiles.filter(profile => profile.id !== id));
+    } catch (error) {
+      console.error('Error deleting profile:', error);
     }
   };
 
@@ -182,6 +253,19 @@ function Status() {
       );
     } catch (error) {
       console.error('Error approving work:', error);
+    }
+  };
+
+  const handleApproveProfile = async (id: Profile['id']) => {
+    try {
+      const approvedProfile = await approveProfile(id);
+      setProfiles(prevProfiles =>
+        prevProfiles.map(profile =>
+          profile.id === approvedProfile.id ? approvedProfile : profile
+        )
+      );
+    } catch (error) {
+      console.error('Error approving profile:', error);
     }
   };
 
@@ -273,8 +357,20 @@ function Status() {
       </Typography>
 
       <Box sx={{ mb: 3 }}>
+        <ToggleButtonGroup
+          value={reportType}
+          exclusive
+          onChange={(_, newType) => newType && setReportType(newType)}
+          aria-label="report type"
+          sx={{ mb: 2 }}>
+          <ToggleButton value="work">Works</ToggleButton>
+          <ToggleButton value="profile">Profiles</ToggleButton>
+        </ToggleButtonGroup>
+
         <TextField
-          label="Search by title or URL"
+          label={`Search ${
+            reportType === 'work' ? 'works' : 'profiles'
+          } by title or URL`}
           value={searchInput}
           onChange={handleSearchChange}
           fullWidth
@@ -289,10 +385,27 @@ function Status() {
           onChange={(_, newFilter) => {
             if (newFilter !== null) setFilter(newFilter);
           }}
-          aria-label="work status filter"
+          aria-label="status filter"
           sx={{ flexWrap: 'wrap', gap: 1 }}>
           {statusFilters.map(({ value, label }) => {
             if (value === 'pending_review' && !user) return null;
+            // Filter out profile-specific statuses when viewing works and vice versa
+            if (
+              reportType === 'work' &&
+              ['confirmed_violator', 'false_positive'].includes(value)
+            )
+              return null;
+            if (
+              reportType === 'profile' &&
+              [
+                'approved',
+                'confirmed',
+                'rejected',
+                'taken_down',
+                'original'
+              ].includes(value)
+            )
+              return null;
             return (
               <ToggleButton key={value} value={value}>
                 {label}
@@ -330,18 +443,33 @@ function Status() {
 
       <PaginationControls />
 
-      {paginatedWorks.length === 0 ? (
-        <Typography>No works found matching your criteria.</Typography>
+      {paginatedItems.length === 0 ? (
+        <Typography>
+          No {reportType === 'work' ? 'works' : 'profiles'} found matching your
+          criteria.
+        </Typography>
       ) : (
-        paginatedWorks.map(work => (
-          <Box key={`work-${work.id}-${work.dateReported}`} sx={{ mb: 2 }}>
-            <WorkItem
-              work={work}
-              onUpdate={user ? handleUpdateWork : undefined}
-              onStatusUpdate={user ? handleUpdateWorkStatus : undefined}
-              onDelete={isAdmin() ? handleDeleteWork : undefined}
-              onApprove={user ? handleApproveWork : undefined}
-            />
+        paginatedItems.map(item => (
+          <Box
+            key={`${reportType}-${item.id}-${item.dateReported}`}
+            sx={{ mb: 2 }}>
+            {reportType === 'work' ? (
+              <WorkItem
+                work={item as Work}
+                onUpdate={user ? handleUpdateWork : undefined}
+                onStatusUpdate={user ? handleUpdateWorkStatus : undefined}
+                onDelete={isAdmin() ? handleDeleteWork : undefined}
+                onApprove={user ? handleApproveWork : undefined}
+              />
+            ) : (
+              <ProfileItem
+                profile={item as Profile}
+                onUpdate={user ? handleUpdateProfile : undefined}
+                onStatusUpdate={user ? handleUpdateProfileStatus : undefined}
+                onDelete={isAdmin() ? handleDeleteProfile : undefined}
+                onApprove={user ? handleApproveProfile : undefined}
+              />
+            )}
           </Box>
         ))
       )}
