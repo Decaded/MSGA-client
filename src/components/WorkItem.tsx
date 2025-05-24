@@ -367,8 +367,14 @@ function WorkItem({
 
             {isModerator() && (
               <AdminTools
-                work={work}
-                onStatusChange={onStatusUpdate}
+                item={work}
+                type="work"
+                onStatusChange={
+                  onStatusUpdate as (
+                    id: number,
+                    status: string
+                  ) => Promise<void>
+                }
                 canDelete={!!canDelete}
                 onDelete={onDelete}
               />
