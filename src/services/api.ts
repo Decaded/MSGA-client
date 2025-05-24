@@ -5,6 +5,7 @@ import type {
 import type { User } from '../types/User';
 import type { Work } from '../types/Work';
 import type { Webhook } from '../types/Webhook';
+import type { Profile } from '../types/Profile';
 
 const API_BASE = import.meta.env.VITE_API_BASE!;
 
@@ -27,6 +28,12 @@ const fetchWrapper = async (
     ...(options.headers as Record<string, string>)
   };
 
+  interface ApiError {
+    error: string;
+    statusCode?: number;
+    details?: string;
+  }
+
   if (auth) {
     const token = getAuthToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -38,7 +45,10 @@ const fetchWrapper = async (
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
+    const errorData: ApiError = await res.json().catch(() => ({
+      error: `Request to ${endpoint} failed with status ${res.status}`
+    }));
+    errorData.statusCode = res.status;
     const message = errorData.error || `Request to ${endpoint} failed`;
 
     if (
@@ -148,6 +158,66 @@ export const approveWork = (id: Work['id']) =>
 export const deleteWork = (id: Work['id']) =>
   fetchWrapper(
     `/works/${id}`,
+    {
+      method: 'DELETE'
+    },
+    true
+  );
+
+// ─── Profiles ────────────────────────────────────────
+export const getProfiles = async (): Promise<Profile[]> => {
+  const raw = await fetchWrapper('/profiles');
+  return Object.keys(raw).map(key => ({
+    ...raw[key],
+    id: raw[key].id || parseInt(key)
+  }));
+};
+
+export const addProfile = (newProfile: Partial<Profile>) =>
+  fetchWrapper(
+    '/profiles',
+    {
+      method: 'POST',
+      body: JSON.stringify(newProfile)
+    },
+    true
+  );
+
+export const updateProfile = (id: Profile['id'], updates: Partial<Profile>) =>
+  fetchWrapper(
+    `/profiles/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    },
+    true
+  );
+
+export const updateProfileStatus = (
+  id: Profile['id'],
+  status: Profile['status']
+) =>
+  fetchWrapper(
+    `/profiles/${id}/status`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    },
+    true
+  );
+
+export const approveProfile = (id: Profile['id']) =>
+  fetchWrapper(
+    `/profiles/${id}/approve`,
+    {
+      method: 'PUT'
+    },
+    true
+  );
+
+export const deleteProfile = (id: Profile['id']) =>
+  fetchWrapper(
+    `/profiles/${id}`,
     {
       method: 'DELETE'
     },
