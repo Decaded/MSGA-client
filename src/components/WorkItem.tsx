@@ -19,10 +19,13 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinkIcon from '@mui/icons-material/Link';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import IconButton from '@mui/material/IconButton';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import AdminTools from './AdminTools';
 import type { Work } from '../types/Work';
+import { useSnackbar } from 'notistack';
 
 const getStatusColor = (status: Work['status']) => {
   const colors: Partial<Record<Work['status'], ChipOwnProps['color']>> = {
@@ -44,6 +47,7 @@ interface Props {
   ) => Promise<void>;
   onDelete?: (workId: Work['id']) => Promise<void>;
   onApprove?: (workId: Work['id']) => void;
+  generateDirectLink: (title: string) => string;
 }
 
 function WorkItem({
@@ -51,11 +55,13 @@ function WorkItem({
   onUpdate,
   onStatusUpdate,
   onDelete,
-  onApprove
+  onApprove,
+  generateDirectLink
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editedWork, setEditedWork] = useState<Partial<Work>>({});
   const { user, isModerator, isAdmin } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
 
   const canEdit = user && isModerator();
   const canDelete = user && isAdmin();
@@ -74,6 +80,19 @@ function WorkItem({
     if (Object.keys(editedWork).length === 0) return;
     await onUpdate?.(work.id, editedWork);
     setEditedWork({});
+  };
+
+  const handleCopyLink = () => {
+    const link = generateDirectLink(work.title);
+    navigator.clipboard
+      .writeText(link)
+      .then(() => {
+        enqueueSnackbar('Link copied to clipboard!', { variant: 'success' });
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        enqueueSnackbar('Failed to copy link', { variant: 'error' });
+      });
   };
 
   const renderEditableField = (
@@ -239,6 +258,19 @@ function WorkItem({
                   Approve
                 </Button>
               )}
+              <IconButton
+                onClick={handleCopyLink}
+                size="small"
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  p: 1,
+                  mr: 1
+                }}
+                title="Copy direct link">
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
             </Box>
 
             <Button
