@@ -125,6 +125,11 @@ function Status() {
     }
   };
 
+  const generateDirectLink = (title: string) => {
+    const encodedTitle = encodeURIComponent(title);
+    return `${window.location.origin}/status?search=${encodedTitle}`;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -460,6 +465,7 @@ function Status() {
                 onStatusUpdate={user ? handleUpdateWorkStatus : undefined}
                 onDelete={isAdmin() ? handleDeleteWork : undefined}
                 onApprove={user ? handleApproveWork : undefined}
+                generateDirectLink={generateDirectLink}
               />
             ) : (
               <ProfileItem
@@ -468,6 +474,7 @@ function Status() {
                 onStatusUpdate={user ? handleUpdateProfileStatus : undefined}
                 onDelete={isAdmin() ? handleDeleteProfile : undefined}
                 onApprove={user ? handleApproveProfile : undefined}
+                generateDirectLink={generateDirectLink}
               />
             )}
           </Box>
